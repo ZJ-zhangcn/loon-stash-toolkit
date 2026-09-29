@@ -53,6 +53,23 @@ class ConversionTests(unittest.TestCase):
             any("/x/resource/show/tab/v2" in rule for rule in document.body_rewrite)
         )
 
+    def test_youtube_stash_uses_protobuf_response_cleaner(self) -> None:
+        path = ROOT / "stash" / "YouTube_remove_ads.stoverride"
+        document = parse_stash(path.read_text(encoding="utf-8"))
+        scripts_by_name = {script.name: script for script in document.scripts}
+
+        self.assertIn("youtube_response_v2", scripts_by_name)
+        self.assertIn(
+            "(browse|next|search|player|reel\\/reel_watch_sequence",
+            scripts_by_name["youtube_response_v2"].match,
+        )
+        self.assertIn(
+            "YouTube_remove_ads_response.js?v=20260929b",
+            document.script_providers["youtube_response_v2"]["url"],
+        )
+        self.assertNotIn("youtube_remove_ads_response", document.script_providers)
+        self.assertNotIn("youtube_support_response", document.script_providers)
+
 
 if __name__ == "__main__":
     unittest.main()
