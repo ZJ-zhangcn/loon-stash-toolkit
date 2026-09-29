@@ -81,7 +81,7 @@
   },
   {
     "name": "YouTube 去广告",
-    "source": "https://kelee.one/Tool/Loon/Lpx/YouTube_remove_ads.lpx",
+    "source": "https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/plugins/YouTube_remove_ads.lpx",
     "output": "YouTube_remove_ads.stoverride"
   },
   {

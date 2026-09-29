@@ -16,6 +16,7 @@ https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/plugins/<�
 | 发现精彩广告拦截 | `cgb-life-startup-ad-test.lpx` | 拦截开屏素材与首页浮窗广告 |
 | 招商银行开屏广告 | `cmb-startup-ad.lpx` | 移除开屏广告配置并屏蔽开屏素材 |
 | 盒马开屏广告 | `freshippo-splash.lpx` | 仅处理盒马开屏响应，避免误伤首页 |
+| YouTube 去广告 | `YouTube_remove_ads.lpx` | 清理推荐流 protobuf 广告，并拦截 pagead、activeview、aclk |
 
 ## Stash 覆写
 
@@ -38,6 +39,14 @@ https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/stash/<文�
 - `app.bilibili.com/x/v2/splash/list`：清空开屏广告列表
 - `app.bilibili.com/x/v2/splash/show`：清空实际展示项
 - `app.bilibili.com/x/v2/splash/brand/list`：清空启动品牌素材
+
+`YouTube_remove_ads.stoverride` 根据关闭去广告覆写后的 iOS 抓包重建：
+
+- `youtubei.googleapis.com/youtubei/v1/browse|next|search`：删除 protobuf 字段 `50195462` 中带 `pagead`、`AD_CPN` 或 `[VIEWABILITY]` 标记的广告项
+- `www.youtube.com/pagead`、`pcs/activeview`：拦截广告展示与可见性上报
+- `www.google.com/aclk`、`www.googleadservices.com/pagead/aclk`、`www.google.com/ads/on-device/conversions`：拦截广告点击与设备端转化上报
+
+该方案处理平台推荐流和请求链路广告，不能去除视频创作者口播或视频内赞助片段。
 
 其余覆写已从 `clash-rules/rules/stash` 迁移，完整源映射见 `sources/loon-plugins.json`。
 

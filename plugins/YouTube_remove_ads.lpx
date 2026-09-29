@@ -1,0 +1,20 @@
+#!name=YouTube 去广告
+#!desc=清理 iOS 推荐流 protobuf 广告，并拦截 pagead、activeview 和 aclk 请求
+#!author=ZJ-zhangcn
+#!homepage=https://github.com/ZJ-zhangcn/loon-stash-toolkit
+
+[Rule]
+URL-REGEX,^https:\/\/www\.youtube\.com\/pagead\/,REJECT
+URL-REGEX,^https:\/\/www\.youtube\.com\/pcs\/activeview,REJECT
+URL-REGEX,^https:\/\/www\.google\.com\/aclk,REJECT
+URL-REGEX,^https:\/\/www\.googleadservices\.com\/pagead\/aclk,REJECT
+URL-REGEX,^https:\/\/www\.google\.com\/ads\/on-device\/conversions,REJECT
+
+[Script]
+http-response ^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(browse|next|search)(\?(.*))?$ script-path=https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/scripts/youtube-remove-ads-response.js, requires-body=true, binary-body-mode=true, tag=YouTube 推荐流去广告
+http-response ^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/(player|reel\/reel_watch_sequence|guide|account\/get_setting|get_watch|log_event|config)(\?(.*))?$ script-path=https://git.repcz.link/kelee.one/Resource/JavaScript/YouTube/YouTube_remove_ads/YouTube_remove_ads_response.js, requires-body=true, binary-body-mode=true, argument={"blockUpload":false,"blockShorts":false,"blockImmersive":false,"captionLang":"zh-Hans","debug":false}, tag=YouTube 播放器与 UMP
+http-request ^https?:\/\/[\w-]+\.googlevideo\.com\/initplayback.+&ack.* script-path=https://git.repcz.link/kelee.one/Resource/JavaScript/YouTube/YouTube_remove_ads/YouTube_remove_ads_request.js, requires-body=true, binary-body-mode=true, argument={"captionLang":"zh-Hans"}, tag=YouTube UMP 请求
+http-request ^https:\/\/youtubei\.googleapis\.com\/youtubei\/v1\/log_event script-path=https://git.repcz.link/kelee.one/Resource/JavaScript/YouTube/YouTube_remove_ads/YouTube_remove_ads_request.js, requires-body=true, binary-body-mode=true, argument={"blockUpload":false,"blockShorts":false,"blockImmersive":false,"captionLang":"zh-Hans","debug":false}, tag=YouTube 日志请求
+
+[MITM]
+hostname = *.googlevideo.com, youtubei.googleapis.com, www.youtube.com, www.googleadservices.com, www.google.com

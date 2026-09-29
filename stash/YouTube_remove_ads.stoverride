@@ -1,34 +1,56 @@
 name: "YouTube 去广告"
+desc: |-
+  清理 iOS 推荐流 protobuf 中带广告标记的卡片，
+  并拦截 pagead、activeview、aclk 与设备端转化请求。
+author: "ZJ-zhangcn"
+homepage: "https://github.com/ZJ-zhangcn/loon-stash-toolkit"
+rules:
+  - "URL-REGEX,^https:\\/\\/www\\.youtube\\.com\\/pagead\\/,REJECT"
+  - "URL-REGEX,^https:\\/\\/www\\.youtube\\.com\\/pcs\\/activeview,REJECT"
+  - "URL-REGEX,^https:\\/\\/www\\.google\\.com\\/aclk,REJECT"
+  - "URL-REGEX,^https:\\/\\/www\\.googleadservices\\.com\\/pagead\\/aclk,REJECT"
+  - "URL-REGEX,^https:\\/\\/www\\.google\\.com\\/ads\\/on-device\\/conversions,REJECT"
 http:
   mitm:
     - "*.googlevideo.com"
     - "youtubei.googleapis.com"
+    - "www.youtube.com"
+    - "www.googleadservices.com"
+    - "www.google.com"
   script:
-    - match: "^https:\\/\\/youtubei\\.googleapis\\.com\\/(youtubei\\/v1\\/(browse|next|player|search|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch|log_event|config))(\\?(.*))?$"
-      name: "loon_youtube_remove_ads_01"
+    - match: "^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/(browse|next|search)(\\?(.*))?$"
+      name: "youtube_remove_ads_response"
+      type: "response"
+      require-body: true
+      binary-mode: true
+    - match: "^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/(player|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch|log_event|config)(\\?(.*))?$"
+      name: "youtube_support_response"
       type: "response"
       require-body: true
       binary-mode: true
       argument: "{\"blockUpload\":false,\"blockShorts\":false,\"blockImmersive\":false,\"captionLang\":\"zh-Hans\",\"debug\":false}"
     - match: "^https?:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback.+&ack.*"
-      name: "loon_youtube_remove_ads_02"
+      name: "youtube_remove_ads_initplayback"
       type: "request"
       require-body: true
       binary-mode: true
       argument: "{\"captionLang\":\"zh-Hans\"}"
     - match: "^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/log_event"
-      name: "loon_youtube_remove_ads_03"
+      name: "youtube_remove_ads_log_event"
       type: "request"
       require-body: true
       binary-mode: true
       argument: "{\"blockUpload\":false,\"blockShorts\":false,\"blockImmersive\":false,\"captionLang\":\"zh-Hans\",\"debug\":false}"
 script-providers:
-  "loon_youtube_remove_ads_01":
+  "youtube_remove_ads_response":
+    url: "https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/scripts/youtube-remove-ads-response.js"
+    interval: 86400
+  "youtube_support_response":
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/YouTube/YouTube_remove_ads/YouTube_remove_ads_response.js"
     interval: 86400
-  "loon_youtube_remove_ads_02":
+  "youtube_remove_ads_initplayback":
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/YouTube/YouTube_remove_ads/YouTube_remove_ads_request.js"
     interval: 86400
-  "loon_youtube_remove_ads_03":
+  "youtube_remove_ads_log_event":
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/YouTube/YouTube_remove_ads/YouTube_remove_ads_request.js"
     interval: 86400
