@@ -35,6 +35,7 @@ https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/stash/<文�
 
 `bilibili-ios-ads.stoverride` 根据 iOS 哔哩哔哩抓包单独整理：
 
+- `app.bilibili.com/x/resource/show/tab/v2`：隐藏底部栏的发布按钮与会员购入口
 - `app.bilibili.com/x/v2/feed/index`：删除 `cm_v2`、`ad_info.is_ad` 和 `nature_ad=1` 卡片
 - `app.bilibili.com/x/v2/splash/list`：清空开屏广告列表
 - `app.bilibili.com/x/v2/splash/show`：清空实际展示项

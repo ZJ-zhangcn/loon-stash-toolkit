@@ -48,7 +48,10 @@ class ConversionTests(unittest.TestCase):
 
         self.assertEqual(document.metadata["name"], "Bilibili iOS 去广告")
         self.assertEqual(document.mitm, ["app.bilibili.com"])
-        self.assertEqual(len(document.body_rewrite), 4)
+        self.assertEqual(len(document.body_rewrite), 5)
+        self.assertTrue(
+            any("/x/resource/show/tab/v2" in rule for rule in document.body_rewrite)
+        )
 
 
 if __name__ == "__main__":

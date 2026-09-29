@@ -1,16 +1,20 @@
 name: 'Bilibili iOS 去广告'
 desc: |-
   过滤哔哩哔哩 iOS 首页推荐流中的 cm_v2 广告卡片，
+  隐藏底部栏的发布与会员购入口，
   并清空开屏广告与启动品牌广告数据。
 author: 'Codex'
 date: '2026-09-29'
-version: '1.0.0'
+version: '1.1.0'
 
 http:
   mitm:
     - app.bilibili.com
 
   body-rewrite:
+    # 底部栏：只移除发布按钮与会员购入口，保留其余底部导航。
+    - '^https?://app\.bilibili\.com/x/resource/show/tab/v2 response-jq if .data.bottom then .data.bottom |= map(select((.id != 670) and (.id != 3609) and (.name != "发布") and (.name != "会员购") and (.tab_id != "publish") and (.tab_id != "会员购Bottom") and (.uri != "bilibili://mall/home"))) else . end'
+
     # 首页推荐流：删除 cm_v2 卡片，以及明确标记为广告的卡片。
     - '^https?://app\.bilibili\.com/x/v2/feed/index response-jq .data.items |= map(select((.card_type != "cm_v2") and (.ad_info.is_ad != true) and (.ad_info.nature_ad != 1)))'
 

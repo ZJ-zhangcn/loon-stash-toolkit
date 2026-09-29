@@ -85,11 +85,6 @@
     "output": "YouTube_remove_ads.stoverride"
   },
   {
-    "name": "哔哩哔哩去广告",
-    "source": "https://kelee.one/Tool/Loon/Lpx/Bilibili_remove_ads.lpx",
-    "output": "Bilibili_remove_ads.stoverride"
-  },
-  {
     "name": "夸克浏览器去广告",
     "source": "https://kelee.one/Tool/Loon/Lpx/QuarkBrowser_remove_ads.lpx",
     "output": "QuarkBrowser_remove_ads.stoverride"
