@@ -1,0 +1,24 @@
+name: 'Bilibili iOS 去广告'
+desc: |-
+  过滤哔哩哔哩 iOS 首页推荐流中的 cm_v2 广告卡片，
+  并清空开屏广告与启动品牌广告数据。
+author: 'Codex'
+date: '2026-09-29'
+version: '1.0.0'
+
+http:
+  mitm:
+    - app.bilibili.com
+
+  body-rewrite:
+    # 首页推荐流：删除 cm_v2 卡片，以及明确标记为广告的卡片。
+    - '^https?://app\.bilibili\.com/x/v2/feed/index response-jq .data.items |= map(select((.card_type != "cm_v2") and (.ad_info.is_ad != true) and (.ad_info.nature_ad != 1)))'
+
+    # 开屏广告列表：清空待展示广告、已曝光记录和保留 ID。
+    - '^https?://app\.bilibili\.com/x/v2/splash/list response-jq .data.list = [] | .data.show = [] | .data.keep_ids = []'
+
+    # 开屏广告展示：清空实际展示项。
+    - '^https?://app\.bilibili\.com/x/v2/splash/show response-jq .data.show = []'
+
+    # 启动品牌广告：清空品牌素材，并清理可能触发预加载的状态。
+    - '^https?://app\.bilibili\.com/x/v2/splash/brand/list response-jq .data.list = [] | .data.preload = [] | .data.show_hash = "" | .data.new_splash_hash = "" | .data.has_new_splash_set = false | .data.force_show_times = 0'

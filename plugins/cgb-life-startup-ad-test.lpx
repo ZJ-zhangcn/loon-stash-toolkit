@@ -1,12 +1,12 @@
 #!name=发现精彩广告拦截
 #!desc=拦截 广发信用卡/发现精彩 开屏广告素材与首页浮窗广告；3 秒原生启动等待可能无法移除
 #!author=ZJ-zhangcn
-#!homepage=https://github.com/ZJ-zhangcn/loon-plugins
+#!homepage=https://github.com/ZJ-zhangcn/loon-stash-toolkit
 #!icon=https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7DRrEjRlMB0cVMaMCu-zphxQmdsyOwwN10x9q-dsWIw&s
 
 [Script]
-http-request ^https:\/\/8\.95508\.com\/creditbank\/mgs\/mgw\.htm$ script-path=https://raw.githubusercontent.com/ZJ-zhangcn/loon-plugins/main/scripts/cgb-life-startup-ad-test.js, timeout=5, tag=发现精彩开屏广告资源拦截
-http-response ^https:\/\/wap\.cgbchina\.com\.cn\/mdpNativeApi\/cawp\/h5-wealth-app\/noSessionServlet\/cawp\/base\/getPersonalizedRecommendations\.fun script-path=https://raw.githubusercontent.com/ZJ-zhangcn/loon-plugins/main/scripts/cgb-life-personalized-ad.js, requires-body=true, timeout=5, tag=发现精彩首页浮窗广告清理
+http-request ^https:\/\/8\.95508\.com\/creditbank\/mgs\/mgw\.htm$ script-path=https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/scripts/cgb-life-startup-ad-test.js, timeout=5, tag=发现精彩开屏广告资源拦截
+http-response ^https:\/\/wap\.cgbchina\.com\.cn\/mdpNativeApi\/cawp\/h5-wealth-app\/noSessionServlet\/cawp\/base\/getPersonalizedRecommendations\.fun script-path=https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/scripts/cgb-life-personalized-ad.js, requires-body=true, timeout=5, tag=发现精彩首页浮窗广告清理
 
 [Rule]
 URL-REGEX,^https:\/\/static\.95508\.com\/mmg\/ciop\/sysabbr\/cmep\/images\/popupads\/,REJECT

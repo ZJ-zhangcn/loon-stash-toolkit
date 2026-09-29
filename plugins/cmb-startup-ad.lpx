@@ -1,11 +1,11 @@
 #!name=招商银行开屏广告
 #!desc=移除招商银行 App 启动开屏广告配置，并兜底屏蔽 mbappinitads 素材
 #!author=ZJ-zhangcn
-#!homepage=https://github.com/ZJ-zhangcn/loon-plugins
+#!homepage=https://github.com/ZJ-zhangcn/loon-stash-toolkit
 #!icon=https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtSTa2igMJ-IX-ti3omujBaDZdQrTUIsBmVQ&s
 
 [Script]
-http-response ^https:\/\/webappcfg\.paas\.cmbchina\.com\/v1\/func\/getmarketconfig script-path=https://raw.githubusercontent.com/ZJ-zhangcn/loon-plugins/main/scripts/cmb-startup-ad.js, requires-body=true, timeout=10, tag=招商银行开屏广告
+http-response ^https:\/\/webappcfg\.paas\.cmbchina\.com\/v1\/func\/getmarketconfig script-path=https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/scripts/cmb-startup-ad.js, requires-body=true, timeout=10, tag=招商银行开屏广告
 
 [Rule]
 URL-REGEX,^https:\/\/s3gw\.cmbimg\.cn\/lr4504-mbappinitads-prd-1255000108\/,REJECT

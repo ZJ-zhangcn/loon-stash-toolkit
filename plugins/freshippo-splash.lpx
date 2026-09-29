@@ -1,11 +1,11 @@
 #!name=盒马开屏广告
 #!desc=移除盒马 App 启动开屏广告，仅处理 pageType=70 / poweron_ad 响应
 #!author=ZJ-zhangcn
-#!homepage=https://github.com/ZJ-zhangcn/loon-plugins
+#!homepage=https://github.com/ZJ-zhangcn/loon-stash-toolkit
 #!icon=https://img.alicdn.com/imgextra/i1/O1CN017dUqIF1HSII6l0mr1_!!6000000000756-2-tps-265-265.png
 
 [Script]
-http-response ^https:\/\/acs-m\.freshippo\.com\/gw\/mtop\.wdk\.render\.querysinglepage\/3\.0\/ script-path=https://raw.githubusercontent.com/ZJ-zhangcn/loon-plugins/main/scripts/freshippo-splash.js, requires-body=true, timeout=10, tag=盒马开屏广告
+http-response ^https:\/\/acs-m\.freshippo\.com\/gw\/mtop\.wdk\.render\.querysinglepage\/3\.0\/ script-path=https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/scripts/freshippo-splash.js, requires-body=true, timeout=10, tag=盒马开屏广告
 
 [MITM]
 hostname = acs-m.freshippo.com

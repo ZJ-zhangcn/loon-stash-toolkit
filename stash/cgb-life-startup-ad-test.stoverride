@@ -1,0 +1,31 @@
+name: "发现精彩广告拦截"
+desc: |-
+  拦截 广发信用卡/发现精彩 开屏广告素材与首页浮窗广告；3 秒原生启动等待可能无法移除
+author: "ZJ-zhangcn"
+homepage: "https://github.com/ZJ-zhangcn/loon-stash-toolkit"
+icon: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7DRrEjRlMB0cVMaMCu-zphxQmdsyOwwN10x9q-dsWIw&s"
+rules:
+  - "URL-REGEX,^https:\\/\\/static\\.95508\\.com\\/mmg\\/ciop\\/sysabbr\\/cmep\\/images\\/popupads\\/,REJECT"
+  - "URL-REGEX,^https:\\/\\/static\\.95508\\.com\\/icppweb\\/images\\/modelMaterial\\/advertising\\/,REJECT"
+http:
+  mitm:
+    - "8.95508.com"
+    - "static.95508.com"
+    - "wap.cgbchina.com.cn"
+  script:
+    - match: "^https:\\/\\/8\\.95508\\.com\\/creditbank\\/mgs\\/mgw\\.htm$"
+      name: "loon_cgb_life_startup_ad_test_01"
+      type: "request"
+      timeout: 5
+    - match: "^https:\\/\\/wap\\.cgbchina\\.com\\.cn\\/mdpNativeApi\\/cawp\\/h5-wealth-app\\/noSessionServlet\\/cawp\\/base\\/getPersonalizedRecommendations\\.fun"
+      name: "loon_cgb_life_startup_ad_test_02"
+      type: "response"
+      require-body: true
+      timeout: 5
+script-providers:
+  "loon_cgb_life_startup_ad_test_01":
+    url: "https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/scripts/cgb-life-startup-ad-test.js"
+    interval: 86400
+  "loon_cgb_life_startup_ad_test_02":
+    url: "https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/scripts/cgb-life-personalized-ad.js"
+    interval: 86400

@@ -1,0 +1,7 @@
+name: "12306 广告域名屏蔽"
+desc: |-
+  屏蔽 12306 明确广告域名 ad.12306.cn；不处理开屏等待页
+author: "ZJ-zhangcn"
+homepage: "https://github.com/ZJ-zhangcn/loon-stash-toolkit"
+rules:
+  - "DOMAIN,ad.12306.cn,REJECT"

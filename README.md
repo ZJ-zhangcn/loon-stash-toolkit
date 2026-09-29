@@ -1,63 +1,81 @@
-# Loon Plugins
+# Loon + Stash Toolkit
 
-个人 Loon 插件与脚本仓库。
+个人 Loon 插件、Stash 覆写与双向转换工具仓库。
 
-## 插件
+## Loon 插件
 
-### 盒马开屏广告
-
-订阅地址：
+订阅地址统一为：
 
 ```text
-https://raw.githubusercontent.com/ZJ-zhangcn/loon-plugins/main/plugins/freshippo-splash.lpx
+https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/plugins/<文件名>
 ```
 
-作用：移除盒马 App 启动开屏广告，仅处理 `pageType=70 / poweron_ad` 响应，避免直接拦截整个接口造成首页误伤。
+| 插件 | 文件 | 作用 |
+| --- | --- | --- |
+| 12306 广告域名屏蔽 | `12306-ad-domain.lpx` | 屏蔽 `ad.12306.cn` |
+| 发现精彩广告拦截 | `cgb-life-startup-ad-test.lpx` | 拦截开屏素材与首页浮窗广告 |
+| 招商银行开屏广告 | `cmb-startup-ad.lpx` | 移除开屏广告配置并屏蔽开屏素材 |
+| 盒马开屏广告 | `freshippo-splash.lpx` | 仅处理盒马开屏响应，避免误伤首页 |
 
-MITM 域名：
+## Stash 覆写
+
+覆写文件位于 `stash/`，订阅地址统一为：
 
 ```text
-acs-m.freshippo.com
+https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/stash/<文件名>
 ```
 
-### 招商银行开屏广告
+以下文件由本仓库的 Loon 插件转换生成：
 
-订阅地址：
+- `12306-ad-domain.stoverride`
+- `cmb-startup-ad.stoverride`
+- `freshippo-splash.stoverride`
+- `cgb-life-startup-ad-test.stoverride`
 
-```text
-https://raw.githubusercontent.com/ZJ-zhangcn/loon-plugins/main/plugins/cmb-startup-ad.lpx
+`bilibili-ios-ads.stoverride` 根据 iOS 哔哩哔哩抓包单独整理：
+
+- `app.bilibili.com/x/v2/feed/index`：删除 `cm_v2`、`ad_info.is_ad` 和 `nature_ad=1` 卡片
+- `app.bilibili.com/x/v2/splash/list`：清空开屏广告列表
+- `app.bilibili.com/x/v2/splash/show`：清空实际展示项
+- `app.bilibili.com/x/v2/splash/brand/list`：清空启动品牌素材
+
+其余覆写已从 `clash-rules/rules/stash` 迁移，完整源映射见 `sources/loon-plugins.json`。
+
+## 双向转换
+
+转换器位于 `tools/convert.py`，只依赖 Python 3 标准库。
+
+Loon 转 Stash：
+
+```bash
+python3 tools/convert.py loon-to-stash plugins/cmb-startup-ad.lpx -o stash/cmb-startup-ad.stoverride
 ```
 
-作用：移除招商银行 App 启动开屏广告配置，并兜底屏蔽 `mbappinitads` 开屏素材。
+Stash 转 Loon：
 
-MITM 域名：
-
-```text
-webappcfg.paas.cmbchina.com, s3gw.cmbimg.cn
+```bash
+python3 tools/convert.py stash-to-loon stash/freshippo-splash.stoverride -o plugins/freshippo-splash.lpx
 ```
 
-### 发现精彩广告拦截
+批量转换：
 
-订阅地址：
-
-```text
-https://raw.githubusercontent.com/ZJ-zhangcn/loon-plugins/main/plugins/cgb-life-startup-ad-test.lpx
+```bash
+python3 tools/convert.py loon-to-stash --input-dir plugins --output-dir build/stash
+python3 tools/convert.py stash-to-loon --input-dir stash --output-dir build/loon
 ```
 
-作用：拦截 广发信用卡/发现精彩 开屏广告素材与抓包中出现的 `APP首页标准版浮窗 / countDown=3`。实测卸载重装后仍存在的 3 秒原生启动等待，当前插件不再承诺移除。
+当前支持并转换以下内容：
 
-MITM 域名：
+- Loon `#!` 元数据与 Stash `name/desc/author/homepage/icon/date/version`
+- `[Rule]` 与 `rules`
+- `[URL Rewrite]`、`[Header Rewrite]`、`[Body Rewrite]`
+- `[Script]`、HTTP script 与 `script-providers`
+- `[MITM]` 与 `http.mitm`
 
-```text
-8.95508.com, static.95508.com, wap.cgbchina.com.cn
+Stash 的 `mock` 没有无损的 Loon 对应语法，转换为 Loon 时会跳过并输出警告；其他未知语法同样会告警。转换后建议先用对应客户端做一次配置校验。
+
+## 验证
+
+```bash
+python3 -m unittest discover -s tests -v
 ```
-
-### 12306 广告域名屏蔽
-
-订阅地址：
-
-```text
-https://raw.githubusercontent.com/ZJ-zhangcn/loon-plugins/main/plugins/12306-ad-domain.lpx
-```
-
-作用：屏蔽 12306 明确广告域名 `ad.12306.cn`。测试确认它不影响开屏等待页，仅作为广告域名屏蔽规则使用。
