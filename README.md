@@ -43,7 +43,7 @@ https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/stash/<文�
 
 `YouTube_remove_ads.stoverride` 根据关闭去广告覆写后的 iOS 抓包重建：
 
-- `youtubei.googleapis.com/youtubei/v1/browse|next|search`：删除 protobuf 字段 `50195462` 中带 `pagead`、`AD_CPN` 或 `[VIEWABILITY]` 标记的广告项
+- `youtubei.googleapis.com/youtubei/v1/browse|next|search`：从 `richItemContents` 中删除 protobuf 字段 `50195462`、`51431404` 内带 `pagead`、`AD_CPN` 或 `[VIEWABILITY]` 标记的广告项
 - `www.youtube.com/pagead`、`pcs/activeview`：拦截广告展示与可见性上报
 - `www.google.com/aclk`、`www.googleadservices.com/pagead/aclk`、`www.google.com/ads/on-device/conversions`：拦截广告点击与设备端转化上报
 

@@ -1,12 +1,13 @@
 /*
  * YouTube feed ad cleanup for Stash/Loon.
  *
- * Newer YouTube iOS responses keep feed ads in protobuf field 50195462.
- * Remove only that field when its payload contains a reliable ad marker so
- * ordinary recommendations remain untouched.
+ * Newer YouTube iOS responses store feed cards in richItemContents. The
+ * enclosing message fields observed in the iOS response are 50195462
+ * (ItemSectionRenderer) and 51431404 (ReelShelfRenderer).
  */
 
-const AD_ITEM_FIELD = 50195462;
+const RICH_ITEM_PARENT_FIELDS = [50195462, 51431404];
+const RICH_ITEM_FIELD = 1;
 const MAX_DEPTH = 32;
 const AD_MARKERS = ["pagead", "AD_CPN", "[VIEWABILITY]"].map(toAsciiBytes);
 
@@ -106,7 +107,7 @@ function hasAdMarker(bytes, start, end) {
   return false;
 }
 
-function cleanMessage(bytes, start, end, depth) {
+function cleanRichItems(bytes, start, end) {
   const chunks = [];
   let changed = false;
   let position = start;
@@ -158,14 +159,112 @@ function cleanMessage(bytes, start, end, depth) {
       position = payloadEnd;
 
       if (
-        fieldNumber === AD_ITEM_FIELD &&
+        fieldNumber === RICH_ITEM_FIELD &&
         hasAdMarker(bytes, payloadStart, payloadEnd)
       ) {
         changed = true;
         continue;
       }
 
-      if (depth < MAX_DEPTH) {
+      chunks.push(bytes.subarray(fieldStart, position));
+      continue;
+    }
+
+    if (wireType === 5) {
+      if (position + 4 > end) {
+        return { bytes: bytes.subarray(start, end), changed: false };
+      }
+      position += 4;
+      chunks.push(bytes.subarray(fieldStart, position));
+      continue;
+    }
+
+    return { bytes: bytes.subarray(start, end), changed: false };
+  }
+
+  if (!changed) {
+    return { bytes: bytes.subarray(start, end), changed: false };
+  }
+  return { bytes: concatChunks(chunks), changed: true };
+}
+
+function isRichItemParent(fieldNumber) {
+  for (let index = 0; index < RICH_ITEM_PARENT_FIELDS.length; index += 1) {
+    if (RICH_ITEM_PARENT_FIELDS[index] === fieldNumber) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function cleanMessage(bytes, start, end, depth) {
+  const chunks = [];
+  let changed = false;
+  let position = start;
+
+  while (position < end) {
+    const fieldStart = position;
+    const tag = readVarint(bytes, position, end);
+    if (!tag) {
+      return { bytes: bytes.subarray(start, end), changed: false };
+    }
+
+    const fieldNumber = Math.floor(tag.value / 8);
+    const wireType = tag.value % 8;
+    position = tag.position;
+    if (fieldNumber <= 0) {
+      return { bytes: bytes.subarray(start, end), changed: false };
+    }
+
+    if (wireType === 0) {
+      const value = readVarint(bytes, position, end);
+      if (!value) {
+        return { bytes: bytes.subarray(start, end), changed: false };
+      }
+      position = value.position;
+      chunks.push(bytes.subarray(fieldStart, position));
+      continue;
+    }
+
+    if (wireType === 1) {
+      if (position + 8 > end) {
+        return { bytes: bytes.subarray(start, end), changed: false };
+      }
+      position += 8;
+      chunks.push(bytes.subarray(fieldStart, position));
+      continue;
+    }
+
+    if (wireType === 2) {
+      const length = readVarint(bytes, position, end);
+      if (!length) {
+        return { bytes: bytes.subarray(start, end), changed: false };
+      }
+
+      const payloadStart = length.position;
+      const payloadEnd = payloadStart + length.value;
+      if (payloadEnd > end) {
+        return { bytes: bytes.subarray(start, end), changed: false };
+      }
+      position = payloadEnd;
+
+      const payloadHasAdMarker = hasAdMarker(bytes, payloadStart, payloadEnd);
+
+      if (isRichItemParent(fieldNumber) && payloadHasAdMarker) {
+        const cleaned = cleanRichItems(bytes, payloadStart, payloadEnd);
+        if (cleaned.changed) {
+          chunks.push(bytes.subarray(fieldStart, tag.position));
+          chunks.push(encodeVarint(cleaned.bytes.length));
+          chunks.push(cleaned.bytes);
+          changed = true;
+          continue;
+        }
+
+        changed = true;
+        continue;
+      }
+
+      if (depth < MAX_DEPTH && payloadHasAdMarker) {
         const nested = cleanMessage(bytes, payloadStart, payloadEnd, depth + 1);
         if (nested.changed) {
           chunks.push(bytes.subarray(fieldStart, tag.position));
@@ -206,6 +305,8 @@ try {
   );
 
   if (!input || input.length === 0) {
+    $done({});
+  } else if (!hasAdMarker(input, 0, input.length)) {
     $done({});
   } else {
     const result = cleanMessage(input, 0, input.length, 0);

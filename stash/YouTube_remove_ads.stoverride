@@ -23,6 +23,8 @@ http:
       type: "response"
       require-body: true
       binary-mode: true
+      timeout: 20
+      max-size: 2097152
     - match: "^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/(player|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch|log_event|config)(\\?(.*))?$"
       name: "youtube_support_response"
       type: "response"
@@ -43,7 +45,7 @@ http:
       argument: "{\"blockUpload\":false,\"blockShorts\":false,\"blockImmersive\":false,\"captionLang\":\"zh-Hans\",\"debug\":false}"
 script-providers:
   "youtube_remove_ads_response":
-    url: "https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/scripts/youtube-remove-ads-response.js"
+    url: "https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/scripts/youtube-remove-ads-response.js?v=20260929"
     interval: 86400
   "youtube_support_response":
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/YouTube/YouTube_remove_ads/YouTube_remove_ads_response.js"
