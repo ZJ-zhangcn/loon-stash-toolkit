@@ -1,8 +1,8 @@
 #!name=番茄小说去广告
-#!desc=版本 20260930a；屏蔽番茄小说广告投放、广告跟踪和区域化域名的请求
+#!desc=版本 20260930b；仅拦截番茄小说高置信广告投放、归因与日志监控域名，避免影响消息和核心功能
 #!author=ZJ-zhangcn
 #!homepage=https://github.com/ZJ-zhangcn/loon-stash-toolkit
-#!version=20260930a
+#!version=20260930b
 
 [Rule]
 AND,((DOMAIN-KEYWORD,ads),(DOMAIN-SUFFIX,zijieapi.com)),REJECT
@@ -26,26 +26,3 @@ DOMAIN,mon11-misc-hl.fqnovel.com,REJECT
 DOMAIN,mon3-misc.fqnovel.com,REJECT
 DOMAIN,rtlog3-applog-hl.fqnovel.com,REJECT
 DOMAIN,rtlog5-applog-hl.fqnovel.com,REJECT
-DOMAIN,effect.snssdk.com,REJECT
-DOMAIN,i.snssdk.com,REJECT
-DOMAIN,i-hl.snssdk.com,REJECT
-DOMAIN,is-lq.snssdk.com,REJECT
-DOMAIN,is.snssdk.com,REJECT
-DOMAIN,is-hl.snssdk.com,REJECT
-DOMAIN,security.snssdk.com,REJECT
-DOMAIN,vas.snssdk.com,REJECT
-DOMAIN,abtest3-misc.zijieapi.com,REJECT
-DOMAIN,abtest3-misc-hl.zijieapi.com,REJECT
-DOMAIN,feedback-c.zijieapi.com,REJECT
-DOMAIN,gecko3.zijieapi.com,REJECT
-DOMAIN,gecko5.zijieapi.com,REJECT
-DOMAIN,gecko5-hl.zijieapi.com,REJECT
-DOMAIN,gecko5-hj.zijieapi.com,REJECT
-DOMAIN,ma.zijieapi.com,REJECT
-DOMAIN,minigame3-normal.zijieapi.com,REJECT
-DOMAIN,minigame5-normal.zijieapi.com,REJECT
-DOMAIN,minigame5-normal-hl.zijieapi.com,REJECT
-DOMAIN,mssdk.zijieapi.com,REJECT
-DOMAIN,mssdk3-normal-lf.zijieapi.com,REJECT
-DOMAIN,timon.zijieapi.com,REJECT
-DOMAIN,vcs.zijieapi.com,REJECT

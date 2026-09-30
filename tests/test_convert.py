@@ -93,14 +93,20 @@ class ConversionTests(unittest.TestCase):
         document = parse_stash(path.read_text(encoding="utf-8"))
 
         self.assertEqual(document.metadata["name"], "番茄小说去广告")
-        self.assertEqual(document.metadata["version"], "20260930a")
-        self.assertIn("版本 20260930a", document.metadata["desc"])
+        self.assertEqual(document.metadata["version"], "20260930b")
+        self.assertIn("版本 20260930b", document.metadata["desc"])
         self.assertIn(
             "AND,((DOMAIN-KEYWORD,ads),(DOMAIN-SUFFIX,zijieapi.com)),REJECT",
             document.rules,
         )
         self.assertIn("DOMAIN,dig.bdurl.net,REJECT", document.rules)
         self.assertIn("DOMAIN,webcast5-open-hl.douyin.com,REJECT", document.rules)
+        self.assertNotIn("DOMAIN,i.snssdk.com,REJECT", document.rules)
+        self.assertNotIn("DOMAIN,security.snssdk.com,REJECT", document.rules)
+        self.assertNotIn("DOMAIN,gecko5-hl.zijieapi.com,REJECT", document.rules)
+        self.assertNotIn(
+            "DOMAIN,mssdk3-normal-lf.zijieapi.com,REJECT", document.rules
+        )
 
 
 if __name__ == "__main__":
