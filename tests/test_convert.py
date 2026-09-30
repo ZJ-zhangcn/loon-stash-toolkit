@@ -88,6 +88,20 @@ class ConversionTests(unittest.TestCase):
         self.assertNotIn("youtube_remove_ads_response", document.script_providers)
         self.assertNotIn("youtube_support_response", document.script_providers)
 
+    def test_dragon_read_stash_blocks_regionalized_ads(self) -> None:
+        path = ROOT / "stash" / "DragonRead_remove_ads.stoverride"
+        document = parse_stash(path.read_text(encoding="utf-8"))
+
+        self.assertEqual(document.metadata["name"], "番茄小说去广告")
+        self.assertEqual(document.metadata["version"], "20260930a")
+        self.assertIn("版本 20260930a", document.metadata["desc"])
+        self.assertIn(
+            "AND,((DOMAIN-KEYWORD,ads),(DOMAIN-SUFFIX,zijieapi.com)),REJECT",
+            document.rules,
+        )
+        self.assertIn("DOMAIN,dig.bdurl.net,REJECT", document.rules)
+        self.assertIn("DOMAIN,webcast5-open-hl.douyin.com,REJECT", document.rules)
+
 
 if __name__ == "__main__":
     unittest.main()

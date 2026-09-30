@@ -15,6 +15,7 @@ https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/plugins/<�
 | 12306 广告域名屏蔽 | `12306-ad-domain.lpx` | 屏蔽 `ad.12306.cn` |
 | 发现精彩广告拦截 | `cgb-life-startup-ad-test.lpx` | 拦截开屏素材与首页浮窗广告 |
 | 招商银行开屏广告 | `cmb-startup-ad.lpx` | 移除开屏广告配置并屏蔽开屏素材 |
+| 番茄小说去广告 | `DragonRead_remove_ads.lpx` | 屏蔽字节广告投放、广告跟踪和区域化广告域名 |
 | 盒马开屏广告 | `freshippo-splash.lpx` | 仅处理盒马开屏响应，避免误伤首页 |
 | YouTube 去广告 | `YouTube_remove_ads.lpx` | 按 protobuf 结构清理推荐流、搜索与播放器广告，并拦截 pagead、activeview、aclk |
 
@@ -30,8 +31,15 @@ https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/stash/<文�
 
 - `12306-ad-domain.stoverride`
 - `cmb-startup-ad.stoverride`
+- `DragonRead_remove_ads.stoverride`
 - `freshippo-splash.stoverride`
 - `cgb-life-startup-ad-test.stoverride`
+
+`DragonRead_remove_ads.stoverride` 当前版本为 `20260930a`：
+
+- `ads3-normal-hl.zijieapi.com`、`ads5-normal-hl.zijieapi.com`：使用域名关键词匹配所有区域化广告节点
+- `dig.bdurl.net`：拦截字节广告落地与归因请求
+- 同时清理番茄小说的日志、监控、广告 SDK、抖音广告落地和资源包相关域名
 
 `bilibili-ios-ads.stoverride` 根据 iOS 哔哩哔哩抓包单独整理：
 

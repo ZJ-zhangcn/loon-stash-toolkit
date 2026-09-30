@@ -11,7 +11,7 @@
   },
   {
     "name": "番茄小说去广告",
-    "source": "https://kelee.one/Tool/Loon/Lpx/DragonRead_remove_ads.lpx",
+    "source": "https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/plugins/DragonRead_remove_ads.lpx",
     "output": "DragonRead_remove_ads.stoverride"
   },
   {
