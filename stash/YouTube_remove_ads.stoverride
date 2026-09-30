@@ -18,7 +18,14 @@ http:
     - "www.googleadservices.com"
     - "www.google.com"
   script:
-    - match: "^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/(browse|next|search|player|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch|log_event|config)(\\?(.*))?$"
+    - match: "^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/(browse|next|search)(\\?(.*))?$"
+      name: "youtube_feed_cleaner_v3"
+      type: "response"
+      require-body: true
+      binary-mode: true
+      timeout: 20
+      max-size: 2097152
+    - match: "^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/(player|reel\\/reel_watch_sequence|guide|account\\/get_setting|get_watch|log_event|config)(\\?(.*))?$"
       name: "youtube_response_v2"
       type: "response"
       require-body: true
@@ -39,6 +46,9 @@ http:
       binary-mode: true
       argument: "{\"blockUpload\":false,\"blockShorts\":false,\"blockImmersive\":false,\"captionLang\":\"zh-Hans\",\"debug\":false}"
 script-providers:
+  "youtube_feed_cleaner_v3":
+    url: "https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/scripts/youtube-remove-ads-feed.js?v=20260930b"
+    interval: 86400
   "youtube_response_v2":
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/YouTube/YouTube_remove_ads/YouTube_remove_ads_response.js?v=20260929b"
     interval: 86400

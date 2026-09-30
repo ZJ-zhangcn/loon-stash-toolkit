@@ -58,10 +58,19 @@ class ConversionTests(unittest.TestCase):
         document = parse_stash(path.read_text(encoding="utf-8"))
         scripts_by_name = {script.name: script for script in document.scripts}
 
+        self.assertIn("youtube_feed_cleaner_v3", scripts_by_name)
+        self.assertIn(
+            "(browse|next|search)",
+            scripts_by_name["youtube_feed_cleaner_v3"].match,
+        )
         self.assertIn("youtube_response_v2", scripts_by_name)
         self.assertIn(
-            "(browse|next|search|player|reel\\/reel_watch_sequence",
+            "(player|reel\\/reel_watch_sequence",
             scripts_by_name["youtube_response_v2"].match,
+        )
+        self.assertIn(
+            "youtube-remove-ads-feed.js?v=20260930b",
+            document.script_providers["youtube_feed_cleaner_v3"]["url"],
         )
         self.assertIn(
             "YouTube_remove_ads_response.js?v=20260929b",
