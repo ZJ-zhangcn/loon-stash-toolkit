@@ -35,12 +35,12 @@ https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/stash/<文�
 - `freshippo-splash.stoverride`
 - `cgb-life-startup-ad-test.stoverride`
 
-`DragonRead_remove_ads.stoverride` 当前版本为 `20260930b`：
+`DragonRead_remove_ads.stoverride` 当前版本为 `20260930c`：
 
 - `ads3-normal-hl.zijieapi.com`、`ads5-normal-hl.zijieapi.com`：使用域名关键词匹配所有区域化广告节点
 - `dig.bdurl.net`：拦截字节广告落地与归因请求
-- 同时清理番茄小说的日志、监控、抖音直播广告落地和广告资源域名
-- `20260930b` 移除了账号、消息、安全校验、AB 配置和资源加载相关域名，避免影响“我的消息”等核心功能
+- `20260930b` 移除了账号、消息、安全校验、AB 配置和资源加载相关域名
+- `20260930c` 进一步移除日志、监控、直播和资源域名，只保留最高置信的广告规则，避免影响“我的消息”等核心功能
 
 `bilibili-ios-ads.stoverride` 根据 iOS 哔哩哔哩抓包单独整理：
 
