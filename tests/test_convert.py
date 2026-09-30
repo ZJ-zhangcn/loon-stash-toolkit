@@ -59,8 +59,10 @@ class ConversionTests(unittest.TestCase):
         scripts_by_name = {script.name: script for script in document.scripts}
 
         self.assertIn("youtube_feed_cleaner_v3", scripts_by_name)
+        self.assertEqual(document.metadata["version"], "20260930e")
+        self.assertIn("版本: 20260930e", document.metadata["desc"])
         self.assertIn(
-            "(browse|next|search)",
+            "(browse|next|search|guide)",
             scripts_by_name["youtube_feed_cleaner_v3"].match,
         )
         self.assertIn("youtube_response_v2", scripts_by_name)
@@ -69,7 +71,7 @@ class ConversionTests(unittest.TestCase):
             scripts_by_name["youtube_response_v2"].match,
         )
         self.assertIn(
-            "youtube-remove-ads-feed.js?v=20260930c",
+            "youtube-remove-ads-feed.js?v=20260930e",
             document.script_providers["youtube_feed_cleaner_v3"]["url"],
         )
         self.assertIn(
@@ -77,8 +79,12 @@ class ConversionTests(unittest.TestCase):
             document.script_providers["youtube_response_v2"]["url"],
         )
         response_script = scripts_by_name["youtube_response_v2"]
-        self.assertIn('"blockUpload":true', response_script.argument or "")
-        self.assertIn('"blockShorts":true', response_script.argument or "")
+        self.assertNotIn("guide", response_script.match)
+        feed_source = (ROOT / "scripts" / "youtube-remove-ads-feed.js").read_text(
+            encoding="utf-8"
+        )
+        self.assertIn('"FEshorts"', feed_source)
+        self.assertIn('"FEuploads"', feed_source)
         self.assertNotIn("youtube_remove_ads_response", document.script_providers)
         self.assertNotIn("youtube_support_response", document.script_providers)
 

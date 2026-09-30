@@ -6,9 +6,16 @@
  * cards can only expose a localized "赞助商广告" label.
  */
 
+const SCRIPT_VERSION = "20260930e";
 const RICH_ITEM_PARENT_FIELDS = [50195462, 51431404];
 const RICH_ITEM_FIELD = 1;
 const ITEM_WRAPPER_FIELDS = [49399797];
+const GUIDE_ITEM_FIELDS = [4, 6];
+const GUIDE_SECTION_FIELD = 117866661;
+const GUIDE_SECTION_ITEM_FIELD = 1;
+const GUIDE_ENTRY_FIELDS = [318370163, 117501096];
+const GUIDE_ENTRY_BROWSE_ID_FIELD = 1;
+const GUIDE_BLOCKED_BROWSE_IDS = ["FEshorts", "FEuploads"].map(toUtf8Bytes);
 const MAX_DEPTH = 32;
 const AD_MARKERS = [
   "pagead",
@@ -171,6 +178,351 @@ function hasConfirmedAdMarker(bytes, start, end) {
     }
   }
   return false;
+}
+
+function bytesEqual(bytes, start, end, expected) {
+  if (end - start !== expected.length) {
+    return false;
+  }
+
+  for (let index = 0; index < expected.length; index += 1) {
+    if (bytes[start + index] !== expected[index]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function isBlockedGuideEntry(bytes, start, end) {
+  let position = start;
+
+  while (position < end) {
+    const tag = readVarint(bytes, position, end);
+    if (!tag) {
+      return false;
+    }
+
+    const fieldNumber = Math.floor(tag.value / 8);
+    const wireType = tag.value % 8;
+    position = tag.position;
+
+    if (wireType === 0) {
+      const value = readVarint(bytes, position, end);
+      if (!value) {
+        return false;
+      }
+      position = value.position;
+      continue;
+    }
+    if (wireType === 1) {
+      position += 8;
+      continue;
+    }
+    if (wireType === 2) {
+      const length = readVarint(bytes, position, end);
+      if (!length) {
+        return false;
+      }
+
+      const payloadStart = length.position;
+      const payloadEnd = payloadStart + length.value;
+      if (payloadEnd > end) {
+        return false;
+      }
+
+      if (fieldNumber === GUIDE_ENTRY_BROWSE_ID_FIELD) {
+        for (let index = 0; index < GUIDE_BLOCKED_BROWSE_IDS.length; index += 1) {
+          if (
+            bytesEqual(
+              bytes,
+              payloadStart,
+              payloadEnd,
+              GUIDE_BLOCKED_BROWSE_IDS[index]
+            )
+          ) {
+            return true;
+          }
+        }
+      }
+
+      position = payloadEnd;
+      continue;
+    }
+    if (wireType === 5) {
+      position += 4;
+      continue;
+    }
+    return false;
+  }
+
+  return false;
+}
+
+function shouldRemoveGuideRendererItem(bytes, start, end) {
+  let position = start;
+
+  while (position < end) {
+    const tag = readVarint(bytes, position, end);
+    if (!tag) {
+      return false;
+    }
+
+    const fieldNumber = Math.floor(tag.value / 8);
+    const wireType = tag.value % 8;
+    position = tag.position;
+
+    if (wireType === 0) {
+      const value = readVarint(bytes, position, end);
+      if (!value) {
+        return false;
+      }
+      position = value.position;
+      continue;
+    }
+    if (wireType === 1) {
+      position += 8;
+      continue;
+    }
+    if (wireType === 2) {
+      const length = readVarint(bytes, position, end);
+      if (!length) {
+        return false;
+      }
+
+      const payloadStart = length.position;
+      const payloadEnd = payloadStart + length.value;
+      if (payloadEnd > end) {
+        return false;
+      }
+
+      if (
+        GUIDE_ENTRY_FIELDS.indexOf(fieldNumber) !== -1 &&
+        isBlockedGuideEntry(bytes, payloadStart, payloadEnd)
+      ) {
+        return true;
+      }
+
+      position = payloadEnd;
+      continue;
+    }
+    if (wireType === 5) {
+      position += 4;
+      continue;
+    }
+    return false;
+  }
+
+  return false;
+}
+
+function cleanGuideSection(bytes, start, end) {
+  const chunks = [];
+  let changed = false;
+  let position = start;
+
+  while (position < end) {
+    const fieldStart = position;
+    const tag = readVarint(bytes, position, end);
+    if (!tag) {
+      return { bytes: bytes.subarray(start, end), changed: false };
+    }
+
+    const fieldNumber = Math.floor(tag.value / 8);
+    const wireType = tag.value % 8;
+    position = tag.position;
+
+    if (wireType === 0) {
+      const value = readVarint(bytes, position, end);
+      if (!value) {
+        return { bytes: bytes.subarray(start, end), changed: false };
+      }
+      position = value.position;
+      chunks.push(bytes.subarray(fieldStart, position));
+      continue;
+    }
+    if (wireType === 1) {
+      position += 8;
+      chunks.push(bytes.subarray(fieldStart, position));
+      continue;
+    }
+    if (wireType === 2) {
+      const length = readVarint(bytes, position, end);
+      if (!length) {
+        return { bytes: bytes.subarray(start, end), changed: false };
+      }
+
+      const payloadStart = length.position;
+      const payloadEnd = payloadStart + length.value;
+      if (payloadEnd > end) {
+        return { bytes: bytes.subarray(start, end), changed: false };
+      }
+      position = payloadEnd;
+
+      if (
+        fieldNumber === GUIDE_SECTION_ITEM_FIELD &&
+        shouldRemoveGuideRendererItem(bytes, payloadStart, payloadEnd)
+      ) {
+        changed = true;
+        continue;
+      }
+
+      chunks.push(bytes.subarray(fieldStart, position));
+      continue;
+    }
+    if (wireType === 5) {
+      position += 4;
+      chunks.push(bytes.subarray(fieldStart, position));
+      continue;
+    }
+    return { bytes: bytes.subarray(start, end), changed: false };
+  }
+
+  if (!changed) {
+    return { bytes: bytes.subarray(start, end), changed: false };
+  }
+  return { bytes: concatChunks(chunks), changed: true };
+}
+
+function cleanGuideItem(bytes, start, end) {
+  const chunks = [];
+  let changed = false;
+  let position = start;
+
+  while (position < end) {
+    const fieldStart = position;
+    const tag = readVarint(bytes, position, end);
+    if (!tag) {
+      return { bytes: bytes.subarray(start, end), changed: false };
+    }
+
+    const fieldNumber = Math.floor(tag.value / 8);
+    const wireType = tag.value % 8;
+    position = tag.position;
+
+    if (wireType === 0) {
+      const value = readVarint(bytes, position, end);
+      if (!value) {
+        return { bytes: bytes.subarray(start, end), changed: false };
+      }
+      position = value.position;
+      chunks.push(bytes.subarray(fieldStart, position));
+      continue;
+    }
+    if (wireType === 1) {
+      position += 8;
+      chunks.push(bytes.subarray(fieldStart, position));
+      continue;
+    }
+    if (wireType === 2) {
+      const length = readVarint(bytes, position, end);
+      if (!length) {
+        return { bytes: bytes.subarray(start, end), changed: false };
+      }
+
+      const payloadStart = length.position;
+      const payloadEnd = payloadStart + length.value;
+      if (payloadEnd > end) {
+        return { bytes: bytes.subarray(start, end), changed: false };
+      }
+      position = payloadEnd;
+
+      if (fieldNumber === GUIDE_SECTION_FIELD) {
+        const cleaned = cleanGuideSection(bytes, payloadStart, payloadEnd);
+        if (cleaned.changed) {
+          chunks.push(bytes.subarray(fieldStart, tag.position));
+          chunks.push(encodeVarint(cleaned.bytes.length));
+          chunks.push(cleaned.bytes);
+          changed = true;
+          continue;
+        }
+      }
+
+      chunks.push(bytes.subarray(fieldStart, position));
+      continue;
+    }
+    if (wireType === 5) {
+      position += 4;
+      chunks.push(bytes.subarray(fieldStart, position));
+      continue;
+    }
+    return { bytes: bytes.subarray(start, end), changed: false };
+  }
+
+  if (!changed) {
+    return { bytes: bytes.subarray(start, end), changed: false };
+  }
+  return { bytes: concatChunks(chunks), changed: true };
+}
+
+function cleanGuideNavigation(bytes, start, end) {
+  const chunks = [];
+  let changed = false;
+  let position = start;
+
+  while (position < end) {
+    const fieldStart = position;
+    const tag = readVarint(bytes, position, end);
+    if (!tag) {
+      return { bytes: bytes.subarray(start, end), changed: false };
+    }
+
+    const fieldNumber = Math.floor(tag.value / 8);
+    const wireType = tag.value % 8;
+    position = tag.position;
+
+    if (wireType === 0) {
+      const value = readVarint(bytes, position, end);
+      if (!value) {
+        return { bytes: bytes.subarray(start, end), changed: false };
+      }
+      position = value.position;
+      chunks.push(bytes.subarray(fieldStart, position));
+      continue;
+    }
+    if (wireType === 1) {
+      position += 8;
+      chunks.push(bytes.subarray(fieldStart, position));
+      continue;
+    }
+    if (wireType === 2) {
+      const length = readVarint(bytes, position, end);
+      if (!length) {
+        return { bytes: bytes.subarray(start, end), changed: false };
+      }
+
+      const payloadStart = length.position;
+      const payloadEnd = payloadStart + length.value;
+      if (payloadEnd > end) {
+        return { bytes: bytes.subarray(start, end), changed: false };
+      }
+      position = payloadEnd;
+
+      if (GUIDE_ITEM_FIELDS.indexOf(fieldNumber) !== -1) {
+        const cleaned = cleanGuideItem(bytes, payloadStart, payloadEnd);
+        if (cleaned.changed) {
+          chunks.push(bytes.subarray(fieldStart, tag.position));
+          chunks.push(encodeVarint(cleaned.bytes.length));
+          chunks.push(cleaned.bytes);
+          changed = true;
+          continue;
+        }
+      }
+
+      chunks.push(bytes.subarray(fieldStart, position));
+      continue;
+    }
+    if (wireType === 5) {
+      position += 4;
+      chunks.push(bytes.subarray(fieldStart, position));
+      continue;
+    }
+    return { bytes: bytes.subarray(start, end), changed: false };
+  }
+
+  if (!changed) {
+    return { bytes: bytes.subarray(start, end), changed: false };
+  }
+  return { bytes: concatChunks(chunks), changed: true };
 }
 
 function endpointName() {
@@ -478,16 +830,51 @@ function cleanMessage(bytes, start, end, depth) {
 try {
   const response = typeof $response !== "undefined" ? $response : null;
   const useBodyBytes = response && response.bodyBytes != null;
+  const endpoint = endpointName();
   const input = toBytes(
     response ? (useBodyBytes ? response.bodyBytes : response.body) : null
   );
 
   if (!input || input.length === 0) {
     $done({});
+  } else if (endpoint === "guide") {
+    const result = cleanGuideNavigation(input, 0, input.length);
+    if (!result.changed) {
+      console.log(
+        "YouTube guide cleaner [" +
+          SCRIPT_VERSION +
+          "]: size=" +
+          input.length +
+          " blocked-item-not-found"
+      );
+      $done({});
+    } else if (useBodyBytes) {
+      console.log(
+        "YouTube guide cleaner [" +
+          SCRIPT_VERSION +
+          "]: size=" +
+          input.length +
+          " removed=" +
+          (input.length - result.bytes.length)
+      );
+      $done({ bodyBytes: result.bytes });
+    } else {
+      console.log(
+        "YouTube guide cleaner [" +
+          SCRIPT_VERSION +
+          "]: size=" +
+          input.length +
+          " removed=" +
+          (input.length - result.bytes.length)
+      );
+      $done({ body: result.bytes });
+    }
   } else if (!hasAdMarker(input, 0, input.length)) {
     console.log(
-      "YouTube feed cleaner: endpoint=" +
-        endpointName() +
+      "YouTube feed cleaner [" +
+        SCRIPT_VERSION +
+        "]: endpoint=" +
+        endpoint +
         " size=" +
         input.length +
         " no-ad-marker"
@@ -497,8 +884,10 @@ try {
     const result = cleanMessage(input, 0, input.length, 0);
     if (!result.changed) {
       console.log(
-        "YouTube feed cleaner: endpoint=" +
-          endpointName() +
+        "YouTube feed cleaner [" +
+          SCRIPT_VERSION +
+          "]: endpoint=" +
+          endpoint +
           " size=" +
           input.length +
           " marker-found-but-not-removed"
@@ -506,8 +895,10 @@ try {
       $done({});
     } else if (useBodyBytes) {
       console.log(
-        "YouTube feed cleaner: endpoint=" +
-          endpointName() +
+        "YouTube feed cleaner [" +
+          SCRIPT_VERSION +
+          "]: endpoint=" +
+          endpoint +
           " size=" +
           input.length +
           " removed=" +
@@ -516,8 +907,10 @@ try {
       $done({ bodyBytes: result.bytes });
     } else {
       console.log(
-        "YouTube feed cleaner: endpoint=" +
-          endpointName() +
+        "YouTube feed cleaner [" +
+          SCRIPT_VERSION +
+          "]: endpoint=" +
+          endpoint +
           " size=" +
           input.length +
           " removed=" +
@@ -527,6 +920,8 @@ try {
     }
   }
 } catch (error) {
-  console.log("YouTube feed ad cleanup failed: " + String(error));
+  console.log(
+    "YouTube feed ad cleanup [" + SCRIPT_VERSION + "] failed: " + String(error)
+  );
   $done({});
 }
