@@ -47,7 +47,7 @@ http:
       argument: "{\"blockUpload\":false,\"blockShorts\":false,\"blockImmersive\":false,\"captionLang\":\"zh-Hans\",\"debug\":false}"
 script-providers:
   "youtube_feed_cleaner_v3":
-    url: "https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/scripts/youtube-remove-ads-feed.js?v=20260930b"
+    url: "https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/scripts/youtube-remove-ads-feed.js?v=20260930c"
     interval: 86400
   "youtube_response_v2":
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/YouTube/YouTube_remove_ads/YouTube_remove_ads_response.js?v=20260929b"

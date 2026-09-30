@@ -69,7 +69,7 @@ class ConversionTests(unittest.TestCase):
             scripts_by_name["youtube_response_v2"].match,
         )
         self.assertIn(
-            "youtube-remove-ads-feed.js?v=20260930b",
+            "youtube-remove-ads-feed.js?v=20260930c",
             document.script_providers["youtube_feed_cleaner_v3"]["url"],
         )
         self.assertIn(

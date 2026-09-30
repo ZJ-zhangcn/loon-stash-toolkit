@@ -8,6 +8,7 @@
 
 const RICH_ITEM_PARENT_FIELDS = [50195462, 51431404];
 const RICH_ITEM_FIELD = 1;
+const ITEM_WRAPPER_FIELDS = [49399797];
 const MAX_DEPTH = 32;
 const AD_MARKERS = [
   "pagead",
@@ -22,6 +23,18 @@ const AD_MARKERS = [
   "skip_ad_on_block",
   "aboutthisad",
   "myadcenter"
+].map(toUtf8Bytes);
+const CONFIRMED_AD_MARKERS = [
+  "pagead",
+  "AD_CPN",
+  "BAD_CPN",
+  "赞助商广告",
+  "贊助商廣告",
+  "engagement_panel_about_this_ad_",
+  "skip_ad_on_block",
+  "aboutthisad",
+  "myadcenter",
+  "yt-ads-web-view-id"
 ].map(toUtf8Bytes);
 
 function toUtf8Bytes(value) {
@@ -145,6 +158,15 @@ function containsAt(bytes, start, end, marker) {
 function hasAdMarker(bytes, start, end) {
   for (let index = 0; index < AD_MARKERS.length; index += 1) {
     if (containsAt(bytes, start, end, AD_MARKERS[index])) {
+      return true;
+    }
+  }
+  return false;
+}
+
+function hasConfirmedAdMarker(bytes, start, end) {
+  for (let index = 0; index < CONFIRMED_AD_MARKERS.length; index += 1) {
+    if (containsAt(bytes, start, end, CONFIRMED_AD_MARKERS[index])) {
       return true;
     }
   }
@@ -303,6 +325,15 @@ function isRichItemParent(fieldNumber) {
   return false;
 }
 
+function isItemWrapper(fieldNumber) {
+  for (let index = 0; index < ITEM_WRAPPER_FIELDS.length; index += 1) {
+    if (ITEM_WRAPPER_FIELDS[index] === fieldNumber) {
+      return true;
+    }
+  }
+  return false;
+}
+
 function cleanMessage(bytes, start, end, depth) {
   const chunks = [];
   const genericRichItemList = hasRepeatedAdRichItems(bytes, start, end);
@@ -356,6 +387,37 @@ function cleanMessage(bytes, start, end, depth) {
       position = payloadEnd;
 
       const payloadHasAdMarker = hasAdMarker(bytes, payloadStart, payloadEnd);
+      const payloadHasConfirmedAdMarker = hasConfirmedAdMarker(
+        bytes,
+        payloadStart,
+        payloadEnd
+      );
+
+      /*
+       * iOS sometimes returns an ad as a standalone item wrapper instead of
+       * a repeated rich-item child. Clean the wrapper first; if nothing inside
+       * can be removed, drop the wrapper itself.
+       */
+      if (isItemWrapper(fieldNumber) && payloadHasConfirmedAdMarker) {
+        if (depth < MAX_DEPTH) {
+          const nested = cleanMessage(
+            bytes,
+            payloadStart,
+            payloadEnd,
+            depth + 1
+          );
+          if (nested.changed) {
+            chunks.push(bytes.subarray(fieldStart, tag.position));
+            chunks.push(encodeVarint(nested.bytes.length));
+            chunks.push(nested.bytes);
+            changed = true;
+            continue;
+          }
+        }
+
+        changed = true;
+        continue;
+      }
 
       if (isRichItemParent(fieldNumber) && payloadHasAdMarker) {
         const cleaned = cleanRichItems(bytes, payloadStart, payloadEnd);
