@@ -32,7 +32,7 @@ http:
       binary-mode: true
       timeout: 20
       max-size: 2097152
-      argument: "{\"blockUpload\":false,\"blockShorts\":false,\"blockImmersive\":false,\"captionLang\":\"zh-Hans\",\"debug\":false}"
+      argument: "{\"blockUpload\":true,\"blockShorts\":true,\"blockImmersive\":false,\"captionLang\":\"zh-Hans\",\"debug\":false}"
     - match: "^https?:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback.+&ack.*"
       name: "youtube_remove_ads_initplayback"
       type: "request"
@@ -44,13 +44,13 @@ http:
       type: "request"
       require-body: true
       binary-mode: true
-      argument: "{\"blockUpload\":false,\"blockShorts\":false,\"blockImmersive\":false,\"captionLang\":\"zh-Hans\",\"debug\":false}"
+      argument: "{\"blockUpload\":true,\"blockShorts\":true,\"blockImmersive\":false,\"captionLang\":\"zh-Hans\",\"debug\":false}"
 script-providers:
   "youtube_feed_cleaner_v3":
     url: "https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/scripts/youtube-remove-ads-feed.js?v=20260930c"
     interval: 86400
   "youtube_response_v2":
-    url: "https://git.repcz.link/kelee.one/Resource/JavaScript/YouTube/YouTube_remove_ads/YouTube_remove_ads_response.js?v=20260929b"
+    url: "https://git.repcz.link/kelee.one/Resource/JavaScript/YouTube/YouTube_remove_ads/YouTube_remove_ads_response.js?v=20260930d"
     interval: 86400
   "youtube_remove_ads_initplayback":
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/YouTube/YouTube_remove_ads/YouTube_remove_ads_request.js"

@@ -73,9 +73,12 @@ class ConversionTests(unittest.TestCase):
             document.script_providers["youtube_feed_cleaner_v3"]["url"],
         )
         self.assertIn(
-            "YouTube_remove_ads_response.js?v=20260929b",
+            "YouTube_remove_ads_response.js?v=20260930d",
             document.script_providers["youtube_response_v2"]["url"],
         )
+        response_script = scripts_by_name["youtube_response_v2"]
+        self.assertIn('"blockUpload":true', response_script.argument or "")
+        self.assertIn('"blockShorts":true', response_script.argument or "")
         self.assertNotIn("youtube_remove_ads_response", document.script_providers)
         self.assertNotIn("youtube_support_response", document.script_providers)
 
