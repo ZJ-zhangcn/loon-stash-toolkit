@@ -148,6 +148,10 @@ def _consume_string_list(
         if indent != item_indent or not line.lstrip().startswith("-"):
             raise ValueError(f"expected a list item at indent {item_indent}: {line}")
         raw = line.lstrip()[1:].strip()
+        if raw in {">", ">-", ">+", "|", "|-", "|+"}:
+            index, value = _consume_block_scalar(lines, index + 1, item_indent, raw)
+            values.append(value)
+            continue
         values.append(_parse_scalar(raw))
         index += 1
     return index, values

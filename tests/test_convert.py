@@ -53,6 +53,17 @@ class ConversionTests(unittest.TestCase):
             any("/x/resource/show/tab/v2" in rule for rule in document.body_rewrite)
         )
 
+    def test_bilibili_override_block_scalars_survive_conversion(self) -> None:
+        path = ROOT / "stash" / "Bilibili_remove_ads.stoverride"
+        document = parse_stash(path.read_text(encoding="utf-8"))
+        self.assertTrue(
+            any("response-jq" in rule and ".data.tab" in rule for rule in document.body_rewrite)
+        )
+        converted = convert_text(
+            "stash-to-loon", path.read_text(encoding="utf-8"), path.stem
+        )
+        self.assertIn("[Body Rewrite]", converted)
+
     def test_youtube_stash_uses_protobuf_response_cleaner(self) -> None:
         path = ROOT / "stash" / "YouTube_remove_ads.stoverride"
         document = parse_stash(path.read_text(encoding="utf-8"))
