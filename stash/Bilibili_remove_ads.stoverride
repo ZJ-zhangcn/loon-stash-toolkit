@@ -216,13 +216,6 @@ http:
                               "common_op_item": {}
                           },
                           {
-                              "id": 622,
-                              "title": "会员购",
-                              "uri": "bilibili://mall/home",
-                              "icon": "http://i0.hdslb.com/bfs/archive/19c794f01def1a267b894be84427d6a8f67081a9.png",
-                              "common_op_item": {}
-                          },
-                          {
                               "id": 404,
                               "title": "我的钱包",
                               "uri": "bilibili://bilipay/mine_wallet",
@@ -344,6 +337,8 @@ http:
           end
       )
     - '^https:\/\/app\.bilibili\.com\/x\/v2\/account\/myinfo\? response-jq .data.vip |= if . != null and .status == 0 then . + { status: 1, type: 2, due_date: 9005270400000, role: 15 } else . end'
+
+    - '^https://app\.bilibili\.com/x/resource/show/tab/v2\? response-jq if .data.bottom then .data.bottom |= map(select((.id != 670) and (.id != 3609) and (.name != "发布") and (.name != "会员购") and (.tab_id != "publish") and (.tab_id != "会员购Bottom") and (.uri != "bilibili://mall/home"))) else . end'
 
   script:
     - match: '^https:\/\/(grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.community\.service\.dm\.v1\.DM\/DmSegMobile$'

@@ -43,7 +43,7 @@ https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/stash/<文�
 - `20260930b` 移除了账号、消息、安全校验、AB 配置和资源加载相关域名
 - `20260930c` 进一步移除日志、监控、直播和资源域名，只保留最高置信的广告规则，避免影响“我的消息”等核心功能
 
-`Bilibili_remove_ads.stoverride` 从 [kokoryh/Sparkle 的 Loon 插件](https://github.com/kokoryh/Sparkle/blob/master/release/loon/plugin/bilibili.lpx) 转换，并按需固定参数：动态最常访问设为 `show`、过滤置顶评论广告、空降助手开启、日志等级 `off`，`bsbsb.top` 走 `DIRECT`。评论区 protobuf 请求脚本已启用；当前上游版本没有独立的请求优化开关。
+`Bilibili_remove_ads.stoverride` 从 [kokoryh/Sparkle 的 Loon 插件](https://github.com/kokoryh/Sparkle/blob/master/release/loon/plugin/bilibili.lpx) 转换，并按需固定参数：动态最常访问设为 `show`、过滤置顶评论广告、空降助手开启、日志等级 `off`，`bsbsb.top` 走 `DIRECT`。我的页面移除会员购，底栏过滤发布（加号）入口。评论区 protobuf 请求脚本已启用；当前上游版本没有独立的请求优化开关。
 
 `bilibili-ios-ads.stoverride` 根据 iOS 哔哩哔哩抓包单独整理：
 

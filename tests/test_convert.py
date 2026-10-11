@@ -65,6 +65,24 @@ class ConversionTests(unittest.TestCase):
         )
         self.assertIn("[Body Rewrite]", converted)
 
+    def test_bilibili_override_hides_membership_shop_and_bottom_publish(self) -> None:
+        path = ROOT / "stash" / "Bilibili_remove_ads.stoverride"
+        document = parse_stash(path.read_text(encoding="utf-8"))
+
+        mine_rule = next(
+            rule
+            for rule in document.body_rewrite
+            if "account" in rule and ".data |= (" in rule
+        )
+        self.assertNotIn('"title": "会员购"', mine_rule)
+        self.assertNotIn('"uri": "bilibili://mall/home"', mine_rule)
+
+        bottom_rule = next(rule for rule in document.body_rewrite if ".id != 670" in rule)
+        self.assertIn('(.name != "发布")', bottom_rule)
+        self.assertIn('(.name != "会员购")', bottom_rule)
+        self.assertIn('(.tab_id != "publish")', bottom_rule)
+        self.assertIn('(.uri != "bilibili://mall/home")', bottom_rule)
+
     def test_youtube_stash_uses_protobuf_response_cleaner(self) -> None:
         path = ROOT / "stash" / "YouTube_remove_ads.stoverride"
         document = parse_stash(path.read_text(encoding="utf-8"))
