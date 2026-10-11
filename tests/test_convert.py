@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 import unittest
 from pathlib import Path
@@ -90,6 +91,18 @@ class ConversionTests(unittest.TestCase):
             document.script_providers["youtube_response_v2"]["url"],
         )
         response_script = scripts_by_name["youtube_response_v2"]
+        expected_arguments = {
+            "blockUpload": True,
+            "blockShorts": True,
+            "blockImmersive": True,
+            "captionLang": "zh-Hans",
+            "debug": False,
+        }
+        self.assertEqual(json.loads(response_script.argument or "{}"), expected_arguments)
+        self.assertEqual(
+            json.loads(scripts_by_name["youtube_remove_ads_log_event"].argument or "{}"),
+            expected_arguments,
+        )
         self.assertNotIn("guide", response_script.match)
         feed_source = (ROOT / "scripts" / "youtube-remove-ads-feed.js").read_text(
             encoding="utf-8"

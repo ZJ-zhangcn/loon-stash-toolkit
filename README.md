@@ -56,6 +56,7 @@ https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/stash/<文�
 `YouTube_remove_ads.stoverride` 根据关闭去广告覆写后的 iOS 抓包重建：
 
 - 当前版本：`20260930e`，同时写入 Stash `version` 与 Loon `#!version`
+- 隐藏上传、Shorts、选段按钮；字幕翻译语言为 `zh-Hans`；调试模式关闭
 - `youtubei.googleapis.com/youtubei/v1/browse|next|search`：解析 `richItemContents` 的 protobuf 字段类型，删除带 `pagead`、`AD_CPN`、`promotedVideo` 或“赞助商广告”等标记的卡片，覆盖首次加载和后续延迟插入的推荐流广告
 - `youtubei.googleapis.com/youtubei/v1/player|reel/reel_watch_sequence|account/get_setting|get_watch|log_event|config`：清理播放器广告字段、短视频广告和 UMP 配置
 - `youtubei.googleapis.com/youtubei/v1/guide`：直接从 protobuf 导航项中移除 `FEshorts` 与 `FEuploads`，隐藏侧边栏和底部导航中的 `Shorts` 与发布（`+`）入口

@@ -34,7 +34,7 @@ http:
       binary-mode: true
       timeout: 20
       max-size: 2097152
-      argument: "{\"blockImmersive\":false,\"captionLang\":\"zh-Hans\",\"debug\":false}"
+      argument: "{\"blockUpload\":true,\"blockShorts\":true,\"blockImmersive\":true,\"captionLang\":\"zh-Hans\",\"debug\":false}"
     - match: "^https?:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback.+&ack.*"
       name: "youtube_remove_ads_initplayback"
       type: "request"
@@ -46,7 +46,7 @@ http:
       type: "request"
       require-body: true
       binary-mode: true
-      argument: "{\"blockImmersive\":false,\"captionLang\":\"zh-Hans\",\"debug\":false}"
+      argument: "{\"blockUpload\":true,\"blockShorts\":true,\"blockImmersive\":true,\"captionLang\":\"zh-Hans\",\"debug\":false}"
 script-providers:
   "youtube_feed_cleaner_v3":
     url: "https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/scripts/youtube-remove-ads-feed.js?v=20260930e"
