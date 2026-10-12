@@ -45,7 +45,7 @@
     "output": "Cainiao_remove_ads.stoverride"
   },
   {
-    "name": "Google 中国跳转",
+    "name": "Google搜索重定向",
     "source": "https://kelee.one/Tool/Loon/Lpx/Google.lpx",
     "output": "Google.stoverride"
   },
@@ -55,7 +55,7 @@
     "output": "Taobao_remove_ads.stoverride"
   },
   {
-    "name": "夸克浏览器去广告",
+    "name": "夸克去广告",
     "source": "https://kelee.one/Tool/Loon/Lpx/QuarkBrowser_remove_ads.lpx",
     "output": "QuarkBrowser_remove_ads.stoverride"
   },
@@ -85,7 +85,7 @@
     "output": "smzdm_remove_ads.stoverride"
   },
   {
-    "name": "QQ音乐去广告",
+    "name": "全民K歌去广告",
     "source": "https://kelee.one/Tool/Loon/Lpx/QQKSong_remove_ads.lpx",
     "output": "QQKSong_remove_ads.stoverride"
   },
@@ -105,12 +105,12 @@
     "output": "Weixin_external_links_unlock.stoverride"
   },
   {
-    "name": "京东历史价格",
+    "name": "京东比价",
     "source": "https://kelee.one/Tool/Loon/Lpx/JD_Price.lpx",
     "output": "JD_Price.stoverride"
   },
   {
-    "name": "QQ链接跳转",
+    "name": "QQ链接解锁",
     "source": "https://kelee.one/Tool/Loon/Lpx/QQ_Redirect.lpx",
     "output": "QQ_Redirect.stoverride"
   },

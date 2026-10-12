@@ -1,4 +1,12 @@
 name: "高德地图去广告"
+desc: |-
+  过滤高德地图开屏广告、各页面推广，精简我的页面。
+author: "RuCu6[https://github.com/RuCu6], kelv1n1n[https://github.com/kelv1n1n], 可莉🅥[https://github.com/luestr/ProxyResource/blob/main/README.md]"
+homepage: "https://hub.kelee.one"
+icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Amap.png"
+category: "去广告"
+date: "2026-10-02 13:57:49"
+
 rules:
   - "DOMAIN,amap-aos-info-nogw.amap.com,REJECT"
   - "DOMAIN,free-aos-cdn-image.amap.com,REJECT"

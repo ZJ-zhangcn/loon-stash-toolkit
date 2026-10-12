@@ -47,6 +47,28 @@ class ConversionTests(unittest.TestCase):
         self.assertEqual(list((ROOT / "plugins").glob("*.lpx")), [])
         self.assertEqual(list((ROOT / "scripts").glob("*.js")), [])
 
+    def test_all_kelee_overrides_have_complete_metadata(self) -> None:
+        mappings = json.loads(
+            (ROOT / "sources" / "loon-plugins.json").read_text(encoding="utf-8")
+        )
+        required = {
+            "name",
+            "desc",
+            "author",
+            "homepage",
+            "icon",
+            "category",
+            "date",
+        }
+        for item in mappings:
+            path = ROOT / "stash" / item["output"]
+            with self.subTest(path=path.name):
+                metadata = parse_stash(path.read_text(encoding="utf-8")).metadata
+                self.assertEqual(metadata["name"], item["name"])
+                self.assertTrue(required.issubset(metadata))
+                self.assertTrue(all(metadata[key].strip() for key in required))
+                self.assertTrue(metadata["icon"].startswith("https://"))
+
     def test_all_stash_overrides_convert_to_parseable_loon(self) -> None:
         for path in sorted((ROOT / "stash").glob("*.stoverride")):
             with self.subTest(path=path.name):

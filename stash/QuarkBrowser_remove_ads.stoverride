@@ -1,4 +1,12 @@
-name: "夸克浏览器去广告"
+name: "夸克去广告"
+desc: |-
+  移除阅读广告、各页面弹窗及横幅，精简我的页面。
+author: "可莉🅥[https://github.com/luestr/ProxyResource/blob/main/README.md]"
+homepage: "https://hub.kelee.one"
+icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/QuarkBrowser.png"
+category: "去广告"
+date: "2026-10-02 13:57:49"
+
 http:
   mitm:
     - "open-cms-api.quark.cn"

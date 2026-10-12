@@ -1,4 +1,12 @@
 name: "菜鸟去广告"
+desc: |-
+  过滤菜鸟广告
+author: "小白脸"
+homepage: "https://hub.kelee.one"
+icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Cainiao.png"
+category: "去广告"
+date: "2026-10-02 13:57:49"
+
 http:
   mitm:
     - "netflow-mtop.cainiao.com"

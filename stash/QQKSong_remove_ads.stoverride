@@ -1,4 +1,12 @@
-name: "QQ音乐去广告"
+name: "全民K歌去广告"
+desc: |-
+  移除开屏广告、歌房页面弹窗广告、消息页广告和我的页面广告。
+author: "可莉🅥[https://github.com/luestr/ProxyResource/blob/main/README.md]"
+homepage: "https://hub.kelee.one"
+icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/QQKSong.png"
+category: "去广告"
+date: "2026-10-02 13:57:49"
+
 rules:
   - "DOMAIN,adsmind.gdtimg.com,REJECT"
   - "DOMAIN,adsmind.ugdtimg.com,REJECT"

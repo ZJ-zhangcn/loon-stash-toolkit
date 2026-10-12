@@ -1,4 +1,12 @@
 name: "拼多多去广告"
+desc: |-
+  移除开屏广告、底栏多多视频、会场入口、聊天页面精选推荐及推广，精简首页和个人中心。
+author: "ZenmoFeiShi[https://github.com/ZenmoFeiShi], 可莉🅥[https://github.com/luestr/ProxyResource/blob/main/README.md]"
+homepage: "https://hub.kelee.one"
+icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/PinDuoDuo.png"
+category: "去广告"
+date: "2026-10-02 13:57:49"
+
 rules:
   - "AND,((URL-REGEX,\"^http:\\/\\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\/d(\\d)?\"),(USER-AGENT,\"*com.xunmeng.pinduoduo*\")),REJECT"
   - "AND,((URL-REGEX,\"^http:\\/\\/\\[[0-9a-fA-F:]+\\]\\/d(\\d)?\\?\"),(USER-AGENT,\"*com.xunmeng.pinduoduo*\")),REJECT"

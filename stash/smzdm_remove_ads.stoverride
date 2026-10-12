@@ -1,4 +1,12 @@
 name: "什么值得买去广告"
+desc: |-
+  移除开屏广告、信息流广告、各类横幅广告、搜索页广告、文章内广告，移除活动皮肤、精简我的页面。
+author: "可莉🅥[https://github.com/luestr/ProxyResource/blob/main/README.md]"
+homepage: "https://hub.kelee.one"
+icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/smzdm.png"
+category: "去广告"
+date: "2026-10-02 13:57:49"
+
 rules:
   - "DOMAIN,adx-api.zdmimg.com,REJECT"
 http:
