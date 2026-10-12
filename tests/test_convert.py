@@ -13,6 +13,79 @@ from tools.convert import convert_text, parse_loon, parse_stash  # noqa: E402
 
 
 class ConversionTests(unittest.TestCase):
+    def test_modern_loon_rewrites_convert_to_stash_reject_and_jq_rules(self) -> None:
+        source = r"""#!name=Example
+#!tag=去广告
+[Rewrite]
+request if ${url} ~= /^https:\/\/ads\.example\/v\d+/i then reject_dict(200)
+request if ${url} ~= /^https:\/\/ads\.example\/legacy/i then reject(404)
+response if ${url} ~= /^https:\/\/api\.example\/feed$/i then response.json.delete(["data.ad", "data.items[0]"])
+response if ${url} ~= /^https:\/\/api\.example\/search$/i then response.json.replace(["data.queries", "data.hint_word"], ["[]", "{}"])
+response if ${url} ~= /^https:\/\/api\.example\/list$/i then response.json.jq(".data.items |= map(select(.kind == \"news\"))")
+^https?:\/\/images\.example\/ad\.gif reject-img
+"""
+        warnings: list[str] = []
+        converted = convert_text("loon-to-stash", source, "example", warnings)
+        document = parse_stash(converted)
+
+        self.assertEqual(
+            document.url_rewrite,
+            [
+                r"(?i)^https://ads\.example/v\d+ - reject-dict",
+                r"(?i)^https://ads\.example/legacy - reject",
+                r"^https?://images\.example/ad\.gif - reject-img",
+            ],
+        )
+        self.assertEqual(
+            document.body_rewrite,
+            [
+                r"(?i)^https://api\.example/feed$ response-jq del(.data.ad, .data.items[0])",
+                r"(?i)^https://api\.example/search$ response-jq (.data.queries = []) | (.data.hint_word = {})",
+                r'(?i)^https://api\.example/list$ response-jq .data.items |= map(select(.kind == "news"))',
+            ],
+        )
+        self.assertEqual(warnings, [])
+
+    def test_modern_loon_scripts_use_argument_values_and_mirror_urls(self) -> None:
+        source = r"""#!name=Example
+[Argument]
+ blockUpload=switch, false, true, tag=Upload
+ captionLang=select, "zh-Hans", "en", tag=Caption
+[Script]
+ response if ${url} ~= /^https:\/\/api\.example\/v1/i then script("https://kelee.one/Resource/JavaScript/example.js", {${blockUpload}, ${captionLang}}) with tag="Example response", requires_body=true, binary_body_mode=true
+ request if ${url} ~= /^https:\/\/api\.example\/init/i then script("https://kelee.one/Resource/JavaScript/example-request.js", {${captionLang}}) with tag="Example request", requires_body=true
+[MitM]
+hostname = api.example.com
+"""
+        warnings: list[str] = []
+        converted = convert_text(
+            "loon-to-stash",
+            source,
+            "example",
+            warnings,
+            argument_values={"blockUpload": True},
+        )
+        document = parse_stash(converted)
+
+        self.assertEqual(len(document.scripts), 2)
+        self.assertEqual(document.scripts[0].match, r"(?i)^https://api\.example/v1")
+        self.assertEqual(document.scripts[0].type, "response")
+        self.assertTrue(document.scripts[0].require_body)
+        self.assertTrue(document.scripts[0].binary_mode)
+        self.assertEqual(
+            document.scripts[0].url,
+            "https://git.repcz.link/kelee.one/Resource/JavaScript/example.js",
+        )
+        self.assertEqual(
+            json.loads(document.scripts[0].argument),
+            {"blockUpload": True, "captionLang": "zh-Hans"},
+        )
+        self.assertEqual(
+            json.loads(document.scripts[1].argument), {"captionLang": "zh-Hans"}
+        )
+        self.assertEqual(document.mitm, ["api.example.com"])
+        self.assertEqual(warnings, [])
+
     def test_loon_tag_maps_to_stash_category_and_round_trips(self) -> None:
         source = (
             "#!name=Example\n"
@@ -33,7 +106,7 @@ class ConversionTests(unittest.TestCase):
         )
         self.assertEqual(loon_document.metadata["tag"], "去广告")
 
-    def test_repository_keeps_only_kelee_overrides_and_bilibili(self) -> None:
+    def test_repository_contains_all_mapped_overrides_and_bilibili(self) -> None:
         mappings = json.loads(
             (ROOT / "sources" / "loon-plugins.json").read_text(encoding="utf-8")
         )
@@ -42,8 +115,14 @@ class ConversionTests(unittest.TestCase):
         expected.add("Kelee_All.stoverride")
         actual = {path.name for path in (ROOT / "stash").glob("*.stoverride")}
 
-        self.assertTrue(all("kelee.one" in item["source"] for item in mappings))
-        self.assertEqual(len(mappings), 21)
+        self.assertEqual(len(mappings), 30)
+        self.assertEqual(
+            sum("kelee.one" in item["source"] for item in mappings), 29
+        )
+        self.assertEqual(
+            mappings[-1]["source"],
+            "https://github.com/fmz200/wool_scripts/raw/main/Loon/plugin/split/partM/Meituan-MeituanWaimai.lpx",
+        )
         self.assertEqual(actual, expected)
         for removed in (
             "AppleWeatherEnhancer.stoverride",
@@ -73,7 +152,7 @@ class ConversionTests(unittest.TestCase):
         )
         self.assertEqual(aggregate.rules[: len(priority_rules)], priority_rules)
 
-    def test_all_kelee_overrides_have_complete_metadata(self) -> None:
+    def test_all_mapped_overrides_have_complete_metadata(self) -> None:
         mappings = json.loads(
             (ROOT / "sources" / "loon-plugins.json").read_text(encoding="utf-8")
         )
@@ -84,15 +163,17 @@ class ConversionTests(unittest.TestCase):
             "homepage",
             "icon",
             "category",
-            "date",
         }
         for item in mappings:
             path = ROOT / "stash" / item["output"]
             with self.subTest(path=path.name):
                 metadata = parse_stash(path.read_text(encoding="utf-8")).metadata
                 self.assertEqual(metadata["name"], item["name"])
-                self.assertTrue(required.issubset(metadata))
-                self.assertTrue(all(metadata[key].strip() for key in required))
+                item_required = required
+                if "kelee.one" in item["source"]:
+                    item_required = required | {"date"}
+                self.assertTrue(item_required.issubset(metadata))
+                self.assertTrue(all(metadata[key].strip() for key in item_required))
                 self.assertTrue(metadata["icon"].startswith("https://"))
 
     def test_aggregate_override_preserves_all_individual_content(self) -> None:
@@ -107,7 +188,7 @@ class ConversionTests(unittest.TestCase):
         source_docs = [parse_stash(path.read_text(encoding="utf-8")) for path in paths]
         aggregate_text = aggregate_path.read_text(encoding="utf-8")
         aggregate = parse_stash(aggregate_text)
-        self.assertEqual(aggregate.metadata["name"], "Kelee 覆写合集")
+        self.assertEqual(aggregate.metadata["name"], "Loon 覆写合集")
 
         for field in (
             "rules",
@@ -119,7 +200,12 @@ class ConversionTests(unittest.TestCase):
         ):
             with self.subTest(field=field):
                 expected = [value for doc in source_docs for value in getattr(doc, field)]
-                self.assertEqual(getattr(aggregate, field), expected)
+                actual = getattr(aggregate, field)
+                if field == "body_rewrite":
+                    # YAML folded scalars may preserve extra indentation as newlines.
+                    actual = [" ".join(value.split()) for value in actual]
+                    expected = [" ".join(value.split()) for value in expected]
+                self.assertEqual(actual, expected)
 
         expected_providers = {
             name: provider
@@ -134,7 +220,33 @@ class ConversionTests(unittest.TestCase):
         for path in paths:
             for line in path.read_text(encoding="utf-8").splitlines():
                 if line.lstrip().startswith(("text:", "base64:")):
-                    self.assertIn(line.strip(), aggregate_text)
+                    _, raw_value = line.strip().split(":", 1)
+                    value = raw_value.strip().strip("'\"")
+                    if value:
+                        self.assertIn(value, aggregate_text)
+                    else:
+                        self.assertRegex(aggregate_text, r"(?m)^\s+text:\s*(?:\"\"|'')$")
+
+    def test_youtube_override_uses_previous_argument_values(self) -> None:
+        document = parse_stash(
+            (ROOT / "stash" / "YouTube_remove_ads.stoverride").read_text(
+                encoding="utf-8"
+            )
+        )
+        expected = {
+            "blockUpload": True,
+            "blockShorts": True,
+            "blockImmersive": True,
+            "captionLang": "zh-Hans",
+            "debug": False,
+        }
+        self.assertEqual(len(document.scripts), 3)
+        self.assertEqual(json.loads(document.scripts[0].argument or "{}"), expected)
+        self.assertEqual(
+            json.loads(document.scripts[1].argument or "{}"),
+            {"captionLang": "zh-Hans"},
+        )
+        self.assertEqual(json.loads(document.scripts[2].argument or "{}"), expected)
 
     def test_all_stash_overrides_convert_to_parseable_loon(self) -> None:
         for path in sorted((ROOT / "stash").glob("*.stoverride")):

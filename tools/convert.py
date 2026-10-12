@@ -9,6 +9,7 @@ silently emitted with a different behavior.
 from __future__ import annotations
 
 import argparse
+import csv
 import json
 import re
 import sys
@@ -18,10 +19,10 @@ from typing import Any, Iterable
 
 
 LOON_SCRIPT_SECTIONS = {
-    "[Rule]": "rules",
-    "[URL Rewrite]": "url_rewrite",
-    "[Header Rewrite]": "header_rewrite",
-    "[Body Rewrite]": "body_rewrite",
+    "[RULE]": "rules",
+    "[URL REWRITE]": "url_rewrite",
+    "[HEADER REWRITE]": "header_rewrite",
+    "[BODY REWRITE]": "body_rewrite",
 }
 
 STASH_LIST_KEYS = {
@@ -54,6 +55,7 @@ class ScriptRule:
     argument: str | None = None
     name: str | None = None
     tag: str | None = None
+    argument_names: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -395,7 +397,196 @@ def parse_stash(text: str) -> Document:
     return document
 
 
-def _parse_loon_script(line: str) -> ScriptRule:
+def _normalize_loon_regex(pattern: str, flags: str = "") -> str:
+    pattern = pattern.replace(r"\/", "/").replace("(?:", "(")
+    return f"(?i){pattern}" if "i" in flags else pattern
+
+
+def _parse_loon_url_condition(
+    line: str,
+) -> tuple[str, str, str] | None:
+    match = re.match(
+        r"^(request|response)\s+if\s+\$\{url\}\s+~=\s+/(.*)/([a-z]*)\s+then\s+(.+)$",
+        line,
+    )
+    if not match:
+        return None
+    directive, pattern, flags, action = match.groups()
+    return directive, _normalize_loon_regex(pattern, flags), action
+
+
+def _loon_reject_action(action: str) -> str:
+    if action in {"reject", "reject-200", "reject-dict", "reject-array", "reject-img"}:
+        return action
+    match = re.fullmatch(r"(reject|reject_dict|reject_array|reject_img)\((\d+)\)", action)
+    if not match:
+        raise ValueError(f"unsupported Loon reject action: {action}")
+    kind, status = match.groups()
+    if kind == "reject":
+        if status == "404":
+            return "reject"
+        if status == "200":
+            return "reject-200"
+        raise ValueError(f"unsupported Loon reject status: {status}")
+    return kind.replace("_", "-")
+
+
+def _jq_path(path: str) -> str:
+    value = path.strip()
+    if not value.startswith("."):
+        value = f".{value}"
+    if not re.fullmatch(
+        r"\.[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*|\[\d+\])*",
+        value,
+    ):
+        raise ValueError(f"unsupported Loon JSON path: {path}")
+    return value
+
+
+def _jq_literal(value: str) -> str:
+    try:
+        parsed = json.loads(value)
+    except json.JSONDecodeError:
+        parsed = value
+    return json.dumps(parsed, ensure_ascii=False, separators=(",", ":"))
+
+
+def _loon_response_jq(action: str) -> str:
+    for method in ("jq", "delete", "replace"):
+        prefix = f"response.json.{method}("
+        if not action.startswith(prefix) or not action.endswith(")"):
+            continue
+        args_text = action[len(prefix) : -1]
+        if method == "jq":
+            expression = json.loads(args_text)
+            if not isinstance(expression, str):
+                raise ValueError("Loon response.json.jq expects a string")
+            return expression
+        args = json.loads(args_text if method == "delete" else f"[{args_text}]")
+        if method == "delete":
+            paths = args if isinstance(args, list) else [args]
+            return f"del({', '.join(_jq_path(path) for path in paths)})"
+        if not isinstance(args, list) or len(args) != 2:
+            raise ValueError("Loon response.json.replace expects path and value")
+        paths = args[0] if isinstance(args[0], list) else [args[0]]
+        values = args[1] if isinstance(args[1], list) else [args[1]]
+        if len(paths) != len(values):
+            raise ValueError("Loon response.json.replace path/value counts differ")
+        return " | ".join(
+            f"({_jq_path(path)} = {_jq_literal(value)})"
+            for path, value in zip(paths, values)
+        )
+    raise ValueError(f"unsupported Loon response rewrite: {action}")
+
+
+def _parse_loon_rewrite(line: str) -> tuple[str, str]:
+    condition = _parse_loon_url_condition(line)
+    if condition:
+        directive, pattern, action = condition
+        if directive == "request":
+            return "url_rewrite", f"{pattern} - {_loon_reject_action(action)}"
+        return "body_rewrite", f"{pattern} response-jq {_loon_response_jq(action)}"
+
+    parts = line.rsplit(None, 1)
+    if len(parts) == 2:
+        pattern, action = parts
+        if action in {"reject", "reject-200", "reject-dict", "reject-array", "reject-img"}:
+            return (
+                "url_rewrite",
+                f"{_normalize_loon_regex(pattern)} - {action}",
+            )
+    raise ValueError(f"unsupported Loon Rewrite line: {line}")
+
+
+def _argument_value(value: str) -> Any:
+    normalized = value.strip()
+    if normalized.lower() in {"true", "false"}:
+        return normalized.lower() == "true"
+    try:
+        return json.loads(normalized)
+    except json.JSONDecodeError:
+        return normalized
+
+
+def _parse_loon_argument(line: str) -> tuple[str, Any]:
+    if "=" not in line:
+        raise ValueError(f"invalid Loon argument: {line}")
+    name, definition = line.split("=", 1)
+    fields = next(csv.reader([definition], skipinitialspace=True))
+    if len(fields) < 2:
+        raise ValueError(f"Loon argument has no default value: {line}")
+    return name.strip(), _argument_value(fields[1])
+
+
+def _parse_loon_options(text: str) -> dict[str, str]:
+    options: dict[str, str] = {}
+    for part in re.split(r",\s*(?=[A-Za-z][A-Za-z0-9_-]*=)", text):
+        if "=" not in part:
+            continue
+        key, value = part.split("=", 1)
+        value = value.strip()
+        if value.startswith('"'):
+            value = json.loads(value)
+        options[key.strip().lower()] = value
+    return options
+
+
+def _mirror_kelee_url(url: str) -> str:
+    return re.sub(r"^https://kelee\.one/", "https://git.repcz.link/kelee.one/", url)
+
+
+def _parse_loon_script(
+    line: str,
+    argument_defaults: dict[str, Any] | None = None,
+    argument_values: dict[str, Any] | None = None,
+) -> ScriptRule:
+    condition = _parse_loon_url_condition(line)
+    if condition:
+        directive, pattern, action = condition
+        script_call = re.fullmatch(
+            r'script\(("(?:\\.|[^"\\])*")(?:,\s*\{(.*?)\})?\)\s+with\s+(.+)',
+            action,
+        )
+        if not script_call:
+            raise ValueError(f"unsupported Loon script action: {action}")
+        raw_url, raw_arguments, raw_options = script_call.groups()
+        names = re.findall(r"\$\{([A-Za-z0-9_-]+)\}", raw_arguments or "")
+        if raw_arguments and not names:
+            raise ValueError(f"unsupported Loon script arguments: {raw_arguments}")
+        defaults = argument_defaults or {}
+        overrides = argument_values or {}
+        values: dict[str, Any] = {}
+        for name in names:
+            if name in overrides:
+                values[name] = overrides[name]
+            elif name in defaults:
+                values[name] = defaults[name]
+            else:
+                raise ValueError(f"Loon script argument has no default: {name}")
+        options = _parse_loon_options(raw_options)
+        return ScriptRule(
+            match=pattern,
+            url=_mirror_kelee_url(json.loads(raw_url)),
+            type=directive,
+            require_body=(
+                _parse_bool(options["requires_body"])
+                if "requires_body" in options
+                else None
+            ),
+            binary_mode=(
+                _parse_bool(options["binary_body_mode"])
+                if "binary_body_mode" in options
+                else None
+            ),
+            timeout=int(options["timeout"]) if "timeout" in options else None,
+            argument=(
+                json.dumps(values, ensure_ascii=False, separators=(",", ":"))
+                if values
+                else None
+            ),
+            tag=options.get("tag"),
+        )
+
     parts = line.split(None, 2)
     if len(parts) < 3:
         raise ValueError(f"invalid Loon script line: {line}")
@@ -403,17 +594,11 @@ def _parse_loon_script(line: str) -> ScriptRule:
     if directive not in {"http-request", "http-response"}:
         raise ValueError(f"unsupported Loon script directive: {directive}")
 
-    options: dict[str, str] = {}
-    for part in re.split(r",\s*(?=[A-Za-z][A-Za-z0-9-]*=)", options_text):
-        if "=" not in part:
-            continue
-        key, value = part.split("=", 1)
-        options[key.strip().lower()] = value.strip()
-
+    options = _parse_loon_options(options_text)
     timeout = int(options["timeout"]) if "timeout" in options else None
     return ScriptRule(
         match=match,
-        url=options.get("script-path"),
+        url=_mirror_kelee_url(options.get("script-path", "")) or None,
         type="request" if directive == "http-request" else "response",
         require_body=(
             _parse_bool(options["requires-body"])
@@ -431,9 +616,13 @@ def _parse_loon_script(line: str) -> ScriptRule:
     )
 
 
-def parse_loon(text: str) -> Document:
+def parse_loon(
+    text: str, argument_values: dict[str, Any] | None = None
+) -> Document:
     document = Document()
     section: str | None = None
+    argument_defaults: dict[str, Any] = {}
+    argument_values = argument_values or {}
     lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
     for original in lines:
         line = original.strip()
@@ -447,14 +636,33 @@ def parse_loon(text: str) -> Document:
             document.metadata[key.strip().lower()] = value.strip()
             continue
         if line.startswith("[") and line.endswith("]"):
-            section = line
+            section = line.upper()
             continue
 
+        if section == "[ARGUMENT]":
+            try:
+                name, value = _parse_loon_argument(line)
+                argument_defaults[name] = value
+            except (ValueError, json.JSONDecodeError) as exc:
+                document.warnings.append(str(exc))
+            continue
+        if section == "[REWRITE]":
+            try:
+                key, value = _parse_loon_rewrite(line)
+                getattr(document, key).append(value)
+            except (ValueError, json.JSONDecodeError) as exc:
+                document.warnings.append(str(exc))
+            continue
         if section in LOON_SCRIPT_SECTIONS:
             getattr(document, LOON_SCRIPT_SECTIONS[section]).append(line)
             continue
-        if section == "[Script]":
-            document.scripts.append(_parse_loon_script(line))
+        if section == "[SCRIPT]":
+            try:
+                document.scripts.append(
+                    _parse_loon_script(line, argument_defaults, argument_values)
+                )
+            except (ValueError, json.JSONDecodeError) as exc:
+                document.warnings.append(str(exc))
             continue
         if section == "[MITM]":
             if line.lower().startswith("hostname"):
@@ -618,10 +826,15 @@ def to_loon(document: Document) -> str:
 
 
 def convert_text(
-    direction: str, text: str, stem: str, warnings: list[str] | None = None
+    direction: str,
+    text: str,
+    stem: str,
+    warnings: list[str] | None = None,
+    *,
+    argument_values: dict[str, Any] | None = None,
 ) -> str:
     if direction == "loon-to-stash":
-        document = parse_loon(text)
+        document = parse_loon(text, argument_values=argument_values)
         result = to_stash(document, stem)
     elif direction == "stash-to-loon":
         document = parse_stash(text)
