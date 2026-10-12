@@ -31,7 +31,16 @@ STASH_LIST_KEYS = {
     "body-rewrite": "body_rewrite",
 }
 
-METADATA_KEYS = ("name", "desc", "author", "homepage", "icon", "date", "version")
+METADATA_KEYS = (
+    "name",
+    "desc",
+    "author",
+    "homepage",
+    "icon",
+    "category",
+    "date",
+    "version",
+)
 
 
 @dataclass
@@ -480,7 +489,13 @@ def to_stash(document: Document, stem: str = "plugin") -> str:
     if metadata.get("desc"):
         output.append("desc: |-")
         output.extend(f"  {line}" for line in metadata["desc"].splitlines())
-    for key in ("author", "homepage", "icon", "date", "version"):
+    for key in ("author", "homepage", "icon"):
+        if metadata.get(key):
+            output.append(f"{key}: {_quote(metadata[key])}")
+    category = metadata.get("category") or metadata.get("tag")
+    if category:
+        output.append(f"category: {_quote(category)}")
+    for key in ("date", "version"):
         if metadata.get(key):
             output.append(f"{key}: {_quote(metadata[key])}")
 
@@ -553,7 +568,13 @@ def to_loon(document: Document) -> str:
     if metadata.get("desc"):
         desc = " ".join(part.strip() for part in metadata["desc"].splitlines())
         output.append(f"#!desc={desc}")
-    for key in ("author", "homepage", "icon", "date", "version"):
+    for key in ("author", "homepage", "icon"):
+        if metadata.get(key):
+            output.append(f"#!{key}={metadata[key]}")
+    tag = metadata.get("tag") or metadata.get("category")
+    if tag:
+        output.append(f"#!tag={tag}")
+    for key in ("date", "version"):
         if metadata.get(key):
             output.append(f"#!{key}={metadata[key]}")
 

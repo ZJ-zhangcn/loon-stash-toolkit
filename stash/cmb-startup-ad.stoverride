@@ -4,6 +4,7 @@ desc: |-
 author: "ZJ-zhangcn"
 homepage: "https://github.com/ZJ-zhangcn/loon-stash-toolkit"
 icon: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTtSTa2igMJ-IX-ti3omujBaDZdQrTUIsBmVQ&s"
+category: "去广告"
 rules:
   - "URL-REGEX,^https:\\/\\/s3gw\\.cmbimg\\.cn\\/lr4504-mbappinitads-prd-1255000108\\/,REJECT"
 http:

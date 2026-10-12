@@ -21,6 +21,45 @@ class ConversionTests(unittest.TestCase):
                 document = parse_stash(converted)
                 self.assertTrue(document.metadata["name"])
 
+    def test_loon_tag_maps_to_stash_category_and_round_trips(self) -> None:
+        source = (
+            "#!name=Example\n"
+            "#!tag=去广告\n"
+            "#!icon=https://example.com/icon.png\n\n"
+            "[Rule]\n"
+            "DOMAIN,example.com,REJECT\n"
+        )
+        converted = convert_text("loon-to-stash", source, "example")
+        stash_document = parse_stash(converted)
+        self.assertEqual(stash_document.metadata["category"], "去广告")
+        self.assertEqual(
+            stash_document.metadata["icon"], "https://example.com/icon.png"
+        )
+
+        loon_document = parse_loon(
+            convert_text("stash-to-loon", converted, "example")
+        )
+        self.assertEqual(loon_document.metadata["tag"], "去广告")
+
+    def test_all_six_loon_converted_overrides_have_icon_and_category(self) -> None:
+        names = (
+            "12306-ad-domain",
+            "cmb-startup-ad",
+            "DragonRead_remove_ads",
+            "freshippo-splash",
+            "cgb-life-startup-ad-test",
+            "Bilibili_remove_ads",
+        )
+        for name in names:
+            with self.subTest(name=name):
+                document = parse_stash(
+                    (ROOT / "stash" / f"{name}.stoverride").read_text(
+                        encoding="utf-8"
+                    )
+                )
+                self.assertTrue(document.metadata.get("icon"))
+                self.assertEqual(document.metadata.get("category"), "去广告")
+
     def test_all_stash_overrides_convert_to_parseable_loon(self) -> None:
         for path in sorted((ROOT / "stash").glob("*.stoverride")):
             with self.subTest(path=path.name):

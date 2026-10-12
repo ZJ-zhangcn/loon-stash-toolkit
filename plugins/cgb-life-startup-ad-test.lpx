@@ -3,6 +3,7 @@
 #!author=ZJ-zhangcn
 #!homepage=https://github.com/ZJ-zhangcn/loon-stash-toolkit
 #!icon=https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7DRrEjRlMB0cVMaMCu-zphxQmdsyOwwN10x9q-dsWIw&s
+#!tag=去广告
 
 [Script]
 http-request ^https:\/\/8\.95508\.com\/creditbank\/mgs\/mgw\.htm$ script-path=https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/scripts/cgb-life-startup-ad-test.js, timeout=5, tag=发现精彩开屏广告资源拦截

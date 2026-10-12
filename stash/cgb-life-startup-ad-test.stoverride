@@ -4,6 +4,7 @@ desc: |-
 author: "ZJ-zhangcn"
 homepage: "https://github.com/ZJ-zhangcn/loon-stash-toolkit"
 icon: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR7DRrEjRlMB0cVMaMCu-zphxQmdsyOwwN10x9q-dsWIw&s"
+category: "去广告"
 rules:
   - "URL-REGEX,^https:\\/\\/static\\.95508\\.com\\/mmg\\/ciop\\/sysabbr\\/cmep\\/images\\/popupads\\/,REJECT"
   - "URL-REGEX,^https:\\/\\/static\\.95508\\.com\\/icppweb\\/images\\/modelMaterial\\/advertising\\/,REJECT"

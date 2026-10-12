@@ -92,7 +92,7 @@ python3 tools/convert.py stash-to-loon --input-dir stash --output-dir build/loon
 
 当前支持并转换以下内容：
 
-- Loon `#!` 元数据与 Stash `name/desc/author/homepage/icon/date/version`
+- Loon `#!` 元数据（包括 `tag`）与 Stash `name/desc/author/homepage/icon/category/date/version`（`tag` ↔ `category`）
 - `[Rule]` 与 `rules`
 - `[URL Rewrite]`、`[Header Rewrite]`、`[Body Rewrite]`
 - `[Script]`、HTTP script 与 `script-providers`

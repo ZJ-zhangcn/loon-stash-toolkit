@@ -3,5 +3,7 @@ desc: |-
   屏蔽 12306 明确广告域名 ad.12306.cn；不处理开屏等待页
 author: "ZJ-zhangcn"
 homepage: "https://github.com/ZJ-zhangcn/loon-stash-toolkit"
+icon: "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/ad/05/62/ad056221-9f87-c034-ce27-00c21a921bf3/AppIcon-0-0-1x_U007epad-0-1-0-0-85-220.png/512x512bb.jpg"
+category: "去广告"
 rules:
   - "DOMAIN,ad.12306.cn,REJECT"

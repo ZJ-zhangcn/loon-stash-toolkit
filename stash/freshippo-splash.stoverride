@@ -4,6 +4,7 @@ desc: |-
 author: "ZJ-zhangcn"
 homepage: "https://github.com/ZJ-zhangcn/loon-stash-toolkit"
 icon: "https://img.alicdn.com/imgextra/i1/O1CN017dUqIF1HSII6l0mr1_!!6000000000756-2-tps-265-265.png"
+category: "去广告"
 http:
   mitm:
     - "acs-m.freshippo.com"
