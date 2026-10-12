@@ -76,7 +76,7 @@ while index < lines.length
   end
   index += 1
 end
-output = lines.join
+output = lines.join.gsub(/^[ \t]+$/, "")
 raise "YAML round-trip changed aggregate" unless YAML.safe_load(output) == result
 
 unless File.file?(output_path) && File.read(output_path) == output

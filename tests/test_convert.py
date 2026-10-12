@@ -216,6 +216,14 @@ hostname = api.example.com
                 self.assertTrue(all(metadata[key].strip() for key in item_required))
                 self.assertTrue(metadata["icon"].startswith("https://"))
 
+    def test_aggregate_has_no_whitespace_only_lines(self) -> None:
+        aggregate = (ROOT / "stash" / "Kelee_All.stoverride").read_text(
+            encoding="utf-8"
+        )
+        self.assertFalse(
+            [line for line in aggregate.splitlines() if line and not line.strip()]
+        )
+
     def test_aggregate_override_preserves_all_individual_content(self) -> None:
         mappings = json.loads(
             (ROOT / "sources" / "loon-plugins.json").read_text(encoding="utf-8")
