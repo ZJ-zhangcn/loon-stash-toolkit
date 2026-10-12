@@ -13,14 +13,6 @@ from tools.convert import convert_text, parse_loon, parse_stash  # noqa: E402
 
 
 class ConversionTests(unittest.TestCase):
-    def test_all_loon_plugins_convert_to_parseable_stash(self) -> None:
-        for path in sorted((ROOT / "plugins").glob("*.lpx")):
-            with self.subTest(path=path.name):
-                source = path.read_text(encoding="utf-8")
-                converted = convert_text("loon-to-stash", source, path.stem)
-                document = parse_stash(converted)
-                self.assertTrue(document.metadata["name"])
-
     def test_loon_tag_maps_to_stash_category_and_round_trips(self) -> None:
         source = (
             "#!name=Example\n"
@@ -41,67 +33,45 @@ class ConversionTests(unittest.TestCase):
         )
         self.assertEqual(loon_document.metadata["tag"], "去广告")
 
-    def test_all_six_loon_converted_overrides_have_icon_and_category(self) -> None:
-        names = (
-            "12306-ad-domain",
-            "cmb-startup-ad",
-            "DragonRead_remove_ads",
-            "freshippo-splash",
-            "cgb-life-startup-ad-test",
-            "Bilibili_remove_ads",
+    def test_repository_keeps_only_kelee_overrides_and_bilibili(self) -> None:
+        mappings = json.loads(
+            (ROOT / "sources" / "loon-plugins.json").read_text(encoding="utf-8")
         )
-        for name in names:
-            with self.subTest(name=name):
-                document = parse_stash(
-                    (ROOT / "stash" / f"{name}.stoverride").read_text(
-                        encoding="utf-8"
-                    )
-                )
-                self.assertTrue(document.metadata.get("icon"))
-                self.assertEqual(document.metadata.get("category"), "去广告")
+        expected = {item["output"] for item in mappings}
+        expected.add("Bilibili_remove_ads.stoverride")
+        actual = {path.name for path in (ROOT / "stash").glob("*.stoverride")}
+
+        self.assertTrue(all("kelee.one" in item["source"] for item in mappings))
+        self.assertEqual(len(mappings), 24)
+        self.assertEqual(actual, expected)
+        self.assertEqual(list((ROOT / "plugins").glob("*.lpx")), [])
+        self.assertEqual(list((ROOT / "scripts").glob("*.js")), [])
 
     def test_all_stash_overrides_convert_to_parseable_loon(self) -> None:
         for path in sorted((ROOT / "stash").glob("*.stoverride")):
             with self.subTest(path=path.name):
-                source = path.read_text(encoding="utf-8")
-                converted = convert_text("stash-to-loon", source, path.stem)
+                converted = convert_text(
+                    "stash-to-loon",
+                    path.read_text(encoding="utf-8"),
+                    path.stem,
+                )
                 document = parse_loon(converted)
                 self.assertTrue(document.metadata["name"])
 
-    def test_cmb_round_trip_keeps_rule_script_and_mitm(self) -> None:
-        path = ROOT / "plugins" / "cmb-startup-ad.lpx"
-        converted = convert_text(
-            "loon-to-stash", path.read_text(encoding="utf-8"), path.stem
-        )
-        document = parse_stash(converted)
-
-        self.assertEqual(document.rules, ["URL-REGEX,^https:\\/\\/s3gw\\.cmbimg\\.cn\\/lr4504-mbappinitads-prd-1255000108\\/,REJECT"])
-        self.assertEqual(document.mitm, ["webappcfg.paas.cmbchina.com", "s3gw.cmbimg.cn"])
-        self.assertEqual(len(document.scripts), 1)
-        self.assertTrue(document.scripts[0].require_body)
-        self.assertEqual(document.scripts[0].timeout, 10)
-        self.assertIn("cmb-startup-ad.js", document.scripts[0].url or "")
-
-    def test_bilibili_stash_has_expected_rewrites(self) -> None:
-        path = ROOT / "stash" / "bilibili-ios-ads.stoverride"
+    def test_bilibili_override_has_icon_and_category(self) -> None:
+        path = ROOT / "stash" / "Bilibili_remove_ads.stoverride"
         document = parse_stash(path.read_text(encoding="utf-8"))
-
-        self.assertEqual(document.metadata["name"], "Bilibili iOS 去广告")
-        self.assertEqual(document.mitm, ["app.bilibili.com"])
-        self.assertEqual(len(document.body_rewrite), 5)
-        self.assertTrue(
-            any("/x/resource/show/tab/v2" in rule for rule in document.body_rewrite)
-        )
+        self.assertEqual(document.metadata["category"], "去广告")
+        self.assertTrue(document.metadata["icon"])
 
     def test_bilibili_override_block_scalars_survive_conversion(self) -> None:
         path = ROOT / "stash" / "Bilibili_remove_ads.stoverride"
-        document = parse_stash(path.read_text(encoding="utf-8"))
+        source = path.read_text(encoding="utf-8")
+        document = parse_stash(source)
         self.assertTrue(
             any("response-jq" in rule and ".data.tab" in rule for rule in document.body_rewrite)
         )
-        converted = convert_text(
-            "stash-to-loon", path.read_text(encoding="utf-8"), path.stem
-        )
+        converted = convert_text("stash-to-loon", source, path.stem)
         self.assertIn("[Body Rewrite]", converted)
 
     def test_bilibili_override_hides_membership_shop_and_bottom_publish(self) -> None:
@@ -121,73 +91,6 @@ class ConversionTests(unittest.TestCase):
         self.assertIn('(.name != "会员购")', bottom_rule)
         self.assertIn('(.tab_id != "publish")', bottom_rule)
         self.assertIn('(.uri != "bilibili://mall/home")', bottom_rule)
-
-    def test_youtube_stash_uses_protobuf_response_cleaner(self) -> None:
-        path = ROOT / "stash" / "YouTube_remove_ads.stoverride"
-        document = parse_stash(path.read_text(encoding="utf-8"))
-        scripts_by_name = {script.name: script for script in document.scripts}
-
-        self.assertIn("youtube_feed_cleaner_v3", scripts_by_name)
-        self.assertEqual(document.metadata["version"], "20260930e")
-        self.assertIn("版本: 20260930e", document.metadata["desc"])
-        self.assertIn(
-            "(browse|next|search|guide)",
-            scripts_by_name["youtube_feed_cleaner_v3"].match,
-        )
-        self.assertIn("youtube_response_v2", scripts_by_name)
-        self.assertIn(
-            "(player|reel\\/reel_watch_sequence",
-            scripts_by_name["youtube_response_v2"].match,
-        )
-        self.assertIn(
-            "youtube-remove-ads-feed.js?v=20260930e",
-            document.script_providers["youtube_feed_cleaner_v3"]["url"],
-        )
-        self.assertIn(
-            "YouTube_remove_ads_response.js?v=20260930d",
-            document.script_providers["youtube_response_v2"]["url"],
-        )
-        response_script = scripts_by_name["youtube_response_v2"]
-        expected_arguments = {
-            "blockUpload": True,
-            "blockShorts": True,
-            "blockImmersive": True,
-            "captionLang": "zh-Hans",
-            "debug": False,
-        }
-        self.assertEqual(json.loads(response_script.argument or "{}"), expected_arguments)
-        self.assertEqual(
-            json.loads(scripts_by_name["youtube_remove_ads_log_event"].argument or "{}"),
-            expected_arguments,
-        )
-        self.assertNotIn("guide", response_script.match)
-        feed_source = (ROOT / "scripts" / "youtube-remove-ads-feed.js").read_text(
-            encoding="utf-8"
-        )
-        self.assertIn('"FEshorts"', feed_source)
-        self.assertIn('"FEuploads"', feed_source)
-        self.assertNotIn("youtube_remove_ads_response", document.script_providers)
-        self.assertNotIn("youtube_support_response", document.script_providers)
-
-    def test_dragon_read_stash_blocks_regionalized_ads(self) -> None:
-        path = ROOT / "stash" / "DragonRead_remove_ads.stoverride"
-        document = parse_stash(path.read_text(encoding="utf-8"))
-
-        self.assertEqual(document.metadata["name"], "番茄小说去广告")
-        self.assertEqual(document.metadata["version"], "20260930c")
-        self.assertIn("版本 20260930c", document.metadata["desc"])
-        self.assertIn(
-            "AND,((DOMAIN-KEYWORD,ads),(DOMAIN-SUFFIX,zijieapi.com)),REJECT",
-            document.rules,
-        )
-        self.assertIn("DOMAIN,dig.bdurl.net,REJECT", document.rules)
-        self.assertEqual(len(document.rules), 2)
-        self.assertNotIn("DOMAIN,i.snssdk.com,REJECT", document.rules)
-        self.assertNotIn("DOMAIN,security.snssdk.com,REJECT", document.rules)
-        self.assertNotIn("DOMAIN,gecko5-hl.zijieapi.com,REJECT", document.rules)
-        self.assertNotIn(
-            "DOMAIN,mssdk3-normal-lf.zijieapi.com,REJECT", document.rules
-        )
 
 
 if __name__ == "__main__":

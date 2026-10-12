@@ -1,104 +1,29 @@
 # Loon + Stash Toolkit
 
-个人 Loon 插件、Stash 覆写与双向转换工具仓库。
-
-## Loon 插件
-
-订阅地址统一为：
-
-```text
-https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/plugins/<文件名>
-```
-
-| 插件 | 文件 | 作用 |
-| --- | --- | --- |
-| 12306 广告域名屏蔽 | `12306-ad-domain.lpx` | 屏蔽 `ad.12306.cn` |
-| 发现精彩广告拦截 | `cgb-life-startup-ad-test.lpx` | 拦截开屏素材与首页浮窗广告 |
-| 招商银行开屏广告 | `cmb-startup-ad.lpx` | 移除开屏广告配置并屏蔽开屏素材 |
-| 番茄小说去广告 | `DragonRead_remove_ads.lpx` | 屏蔽字节广告投放、广告跟踪和区域化广告域名 |
-| 盒马开屏广告 | `freshippo-splash.lpx` | 仅处理盒马开屏响应，避免误伤首页 |
-| YouTube 去广告 | `YouTube_remove_ads.lpx` | 按 protobuf 结构清理推荐流、搜索与播放器广告，并拦截 pagead、activeview、aclk |
+收录 Kelee 的 Loon 插件转换得到的 Stash 覆写，以及双向转换工具。
 
 ## Stash 覆写
 
-覆写文件位于 `stash/`，订阅地址统一为：
+覆写位于 `stash/`，订阅地址格式：
 
 ```text
 https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/stash/<文件名>
 ```
 
-以下文件由本仓库的 Loon 插件转换生成：
-
-- `12306-ad-domain.stoverride`
-- `cmb-startup-ad.stoverride`
-- `DragonRead_remove_ads.stoverride`
-- `freshippo-splash.stoverride`
-- `cgb-life-startup-ad-test.stoverride`
-- `Bilibili_remove_ads.stoverride`
-
-`DragonRead_remove_ads.stoverride` 当前版本为 `20260930c`：
-
-- `ads3-normal-hl.zijieapi.com`、`ads5-normal-hl.zijieapi.com`：使用域名关键词匹配所有区域化广告节点
-- `dig.bdurl.net`：拦截字节广告落地与归因请求
-- `20260930b` 移除了账号、消息、安全校验、AB 配置和资源加载相关域名
-- `20260930c` 进一步移除日志、监控、直播和资源域名，只保留最高置信的广告规则，避免影响“我的消息”等核心功能
-
-`Bilibili_remove_ads.stoverride` 从 [kokoryh/Sparkle 的 Loon 插件](https://github.com/kokoryh/Sparkle/blob/master/release/loon/plugin/bilibili.lpx) 转换，并按需固定参数：动态最常访问设为 `show`、过滤置顶评论广告、空降助手开启、日志等级 `off`，`bsbsb.top` 走 `DIRECT`。我的页面移除会员购，底栏过滤发布（加号）入口。评论区 protobuf 请求脚本已启用；当前上游版本没有独立的请求优化开关。
-
-`bilibili-ios-ads.stoverride` 根据 iOS 哔哩哔哩抓包单独整理：
-
-- `app.bilibili.com/x/resource/show/tab/v2`：隐藏底部栏的发布按钮与会员购入口
-- `app.bilibili.com/x/v2/feed/index`：删除 `cm_v2`、`ad_info.is_ad` 和 `nature_ad=1` 卡片
-- `app.bilibili.com/x/v2/splash/list`：清空开屏广告列表
-- `app.bilibili.com/x/v2/splash/show`：清空实际展示项
-- `app.bilibili.com/x/v2/splash/brand/list`：清空启动品牌素材
-
-`YouTube_remove_ads.stoverride` 根据关闭去广告覆写后的 iOS 抓包重建：
-
-- 当前版本：`20260930e`，同时写入 Stash `version` 与 Loon `#!version`
-- 隐藏上传、Shorts、选段按钮；字幕翻译语言为 `zh-Hans`；调试模式关闭
-- `youtubei.googleapis.com/youtubei/v1/browse|next|search`：解析 `richItemContents` 的 protobuf 字段类型，删除带 `pagead`、`AD_CPN`、`promotedVideo` 或“赞助商广告”等标记的卡片，覆盖首次加载和后续延迟插入的推荐流广告
-- `youtubei.googleapis.com/youtubei/v1/player|reel/reel_watch_sequence|account/get_setting|get_watch|log_event|config`：清理播放器广告字段、短视频广告和 UMP 配置
-- `youtubei.googleapis.com/youtubei/v1/guide`：直接从 protobuf 导航项中移除 `FEshorts` 与 `FEuploads`，隐藏侧边栏和底部导航中的 `Shorts` 与发布（`+`）入口
-- `www.youtube.com/pagead`、`pcs/activeview`：拦截广告展示与可见性上报
-- `www.google.com/aclk`、`www.googleadservices.com/pagead/aclk`、`www.google.com/ads/on-device/conversions`：拦截广告点击与设备端转化上报
-
-该方案处理平台推荐流和请求链路广告，不能去除视频创作者口播或视频内赞助片段。
-
-其余覆写已从 `clash-rules/rules/stash` 迁移，完整源映射见 `sources/loon-plugins.json`。
+- 24 个覆写来源于 `kelee.one`，源文件与输出映射见 `sources/loon-plugins.json`。
+- `Bilibili_remove_ads.stoverride` 基于 [kokoryh/Sparkle 的 Loon 插件](https://github.com/kokoryh/Sparkle/blob/master/release/loon/plugin/bilibili.lpx)，按需固定参数：动态最常访问设为 `show`、过滤置顶评论广告、开启空降助手、关闭日志，`bsbsb.top` 走 `DIRECT`。我的页面移除会员购，底栏过滤发布（加号）入口。评论区 protobuf 请求脚本已启用；当前上游版本没有独立的请求优化开关。
 
 ## 双向转换
 
-转换器位于 `tools/convert.py`，只依赖 Python 3 标准库。
-
-Loon 转 Stash：
+转换器 `tools/convert.py` 仅依赖 Python 3 标准库。
 
 ```bash
-python3 tools/convert.py loon-to-stash plugins/cmb-startup-ad.lpx -o stash/cmb-startup-ad.stoverride
-```
-
-Stash 转 Loon：
-
-```bash
-python3 tools/convert.py stash-to-loon stash/freshippo-splash.stoverride -o plugins/freshippo-splash.lpx
-```
-
-批量转换：
-
-```bash
-python3 tools/convert.py loon-to-stash --input-dir plugins --output-dir build/stash
+python3 tools/convert.py loon-to-stash ~/Downloads/example.lpx -o build/example.stoverride
+python3 tools/convert.py stash-to-loon stash/Block_HTTPDNS.stoverride -o build/Block_HTTPDNS.lpx
 python3 tools/convert.py stash-to-loon --input-dir stash --output-dir build/loon
 ```
 
-当前支持并转换以下内容：
-
-- Loon `#!` 元数据（包括 `tag`）与 Stash `name/desc/author/homepage/icon/category/date/version`（`tag` ↔ `category`）
-- `[Rule]` 与 `rules`
-- `[URL Rewrite]`、`[Header Rewrite]`、`[Body Rewrite]`
-- `[Script]`、HTTP script 与 `script-providers`
-- `[MITM]` 与 `http.mitm`
-
-Stash 的 `mock` 没有无损的 Loon 对应语法，转换为 Loon 时会跳过并输出警告；其他未知语法同样会告警。转换后建议先用对应客户端做一次配置校验。
+支持 Loon `#!` 元数据与 Stash 元数据（包括 `tag` ↔ `category`）、规则、各类 Rewrite、脚本及 MITM。Stash 的 `mock` 没有无损的 Loon 对应语法，转换时会跳过并警告；其他未知语法也会告警。转换后建议用对应客户端校验配置。
 
 ## 验证
 
