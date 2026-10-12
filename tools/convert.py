@@ -404,15 +404,15 @@ def _normalize_loon_regex(pattern: str, flags: str = "") -> str:
 
 def _parse_loon_url_condition(
     line: str,
-) -> tuple[str, str, str] | None:
+) -> tuple[str, str, str, str | None] | None:
     match = re.match(
-        r"^(request|response)\s+if\s+\$\{url\}\s+~=\s+/(.*)/([a-z]*)\s+then\s+(.+)$",
+        r"^(request|response)\s+if\s+\$\{url\}\s+~=\s+/(.*)/([a-z]*)(?:\s+as\s+([A-Za-z_$][A-Za-z0-9_$]*))?\s+then\s+(.+)$",
         line,
     )
     if not match:
         return None
-    directive, pattern, flags, action = match.groups()
-    return directive, _normalize_loon_regex(pattern, flags), action
+    directive, pattern, flags, match_name, action = match.groups()
+    return directive, _normalize_loon_regex(pattern, flags), action, match_name
 
 
 def _loon_reject_action(action: str) -> str:
@@ -436,17 +436,24 @@ def _jq_path(path: str) -> str:
     if not value.startswith("."):
         value = f".{value}"
     if not re.fullmatch(
-        r"\.[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*|\[\d+\])*",
+        r"\.[A-Za-z_$][A-Za-z0-9_$-]*(?:\.[A-Za-z_$][A-Za-z0-9_$-]*|\[\d+\])*",
         value,
     ):
         raise ValueError(f"unsupported Loon JSON path: {path}")
-    return value
+    return re.sub(
+        r"\.([A-Za-z_$][A-Za-z0-9_$-]*)",
+        lambda match: f'."{match.group(1)}"' if "-" in match.group(1) else match.group(0),
+        value,
+    )
 
 
-def _jq_literal(value: str) -> str:
-    try:
-        parsed = json.loads(value)
-    except json.JSONDecodeError:
+def _jq_literal(value: Any) -> str:
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+        except json.JSONDecodeError:
+            parsed = value
+    else:
         parsed = value
     return json.dumps(parsed, ensure_ascii=False, separators=(",", ":"))
 
@@ -482,9 +489,39 @@ def _loon_response_jq(action: str) -> str:
 def _parse_loon_rewrite(line: str) -> tuple[str, str]:
     condition = _parse_loon_url_condition(line)
     if condition:
-        directive, pattern, action = condition
+        directive, pattern, action, match_name = condition
         if directive == "request":
+            if action.startswith("redirect(") and action.endswith(")"):
+                arguments = next(
+                    csv.reader([action[len("redirect(") : -1]], skipinitialspace=True)
+                )
+                if len(arguments) != 2 or arguments[0] not in {"302", "307"}:
+                    raise ValueError(f"unsupported Loon redirect action: {action}")
+                target = arguments[1].strip()
+                if match_name:
+                    target = re.sub(
+                        rf"\$\{{{re.escape(match_name)}\.([1-9]\d*)\}}",
+                        r"$\1",
+                        target,
+                    )
+                if "${" in target:
+                    raise ValueError(f"unsupported Loon redirect interpolation: {target}")
+                if not target.startswith(("http://", "https://", "$")):
+                    raise ValueError(f"unsupported Loon redirect target: {target}")
+                return "url_rewrite", f"{pattern} {target} {arguments[0]}"
             return "url_rewrite", f"{pattern} - {_loon_reject_action(action)}"
+        if action.startswith("response.body.mock(") and action.endswith(")"):
+            arguments = next(
+                csv.reader(
+                    [action[len("response.body.mock(") : -1]], skipinitialspace=True
+                )
+            )
+            if len(arguments) != 2 or arguments[0] != "text":
+                raise ValueError(f"unsupported Loon body mock action: {action}")
+            return (
+                "body_rewrite",
+                f"{pattern} response-replace-regex (?s)^.*$ {_quote(arguments[1])}",
+            )
         return "body_rewrite", f"{pattern} response-jq {_loon_response_jq(action)}"
 
     parts = line.rsplit(None, 1)
@@ -542,7 +579,7 @@ def _parse_loon_script(
 ) -> ScriptRule:
     condition = _parse_loon_url_condition(line)
     if condition:
-        directive, pattern, action = condition
+        directive, pattern, action, _match_name = condition
         script_call = re.fullmatch(
             r'script\(("(?:\\.|[^"\\])*")(?:,\s*\{(.*?)\})?\)\s+with\s+(.+)',
             action,

@@ -4,7 +4,6 @@ author: 各来源插件作者；合集整理：ZJ-zhangcn
 homepage: https://github.com/ZJ-zhangcn/loon-stash-toolkit
 icon: https://github.com/luestr.png
 category: 插件合集
-date: '2026-10-12 17:05:07'
 rules:
   - DOMAIN-KEYWORD,adstrategy,REJECT
   - AND,((DOMAIN-KEYWORD,tnc),(OR,((DOMAIN-SUFFIX,capcutapi.com),(DOMAIN-SUFFIX,zijieapi.com),(DOMAIN-SUFFIX,isnssdk.com),(DOMAIN-SUFFIX,toutiaoapi.com),(DOMAIN-SUFFIX,bytedance.com),(DOMAIN-SUFFIX,snssdk.com),(DOMAIN-SUFFIX,sgsnssdk.com)))),DIRECT
@@ -1929,3 +1928,4 @@ script-providers:
   bilibili-webpage:
     url: https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/webpage.bilibili.js
     interval: 86400
+date: '2026-10-12 18:34:53'

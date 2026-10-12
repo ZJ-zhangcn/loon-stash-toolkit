@@ -13,14 +13,54 @@ from tools.convert import convert_text, parse_loon, parse_stash  # noqa: E402
 
 
 class ConversionTests(unittest.TestCase):
+    def test_loon_redirect_action_maps_to_stash_url_rewrite(self) -> None:
+        source = r"""#!name=Redirect
+[Rewrite]
+request if ${url} ~= /^https?:\/\/(www.)?(g|google)\.cn/i then redirect(307, "https://www.google.com")
+"""
+        converted = convert_text("loon-to-stash", source, "redirect")
+        document = parse_stash(converted)
+        self.assertEqual(
+            document.url_rewrite,
+            [r"(?i)^https?://(www.)?(g|google)\.cn https://www.google.com 307"],
+        )
+
+    def test_loon_redirect_capture_variable_maps_to_stash_groups(self) -> None:
+        source = r'''#!name=Redirect
+[Rewrite]
+request if ${url} ~= /^https:\/\/example\.com\/go\/(first)\/(second)$/i as urlMatch then redirect(307, "${urlMatch.2}")
+'''
+        converted = convert_text("loon-to-stash", source, "redirect")
+        document = parse_stash(converted)
+
+        self.assertEqual(
+            document.url_rewrite,
+            [r"(?i)^https://example\.com/go/(first)/(second)$ $2 307"],
+        )
+
+    def test_loon_response_text_mock_replaces_the_entire_body(self) -> None:
+        source = r'''#!name=Mock
+[Rewrite]
+response if ${url} ~= /^https:\/\/api\.example\/ads$/i then response.body.mock("text", "")
+'''
+        warnings: list[str] = []
+        converted = convert_text("loon-to-stash", source, "mock", warnings)
+        document = parse_stash(converted)
+
+        self.assertEqual(
+            document.body_rewrite,
+            [r'(?i)^https://api\.example/ads$ response-replace-regex (?s)^.*$ ""'],
+        )
+        self.assertEqual(warnings, [])
+
     def test_modern_loon_rewrites_convert_to_stash_reject_and_jq_rules(self) -> None:
         source = r"""#!name=Example
 #!tag=去广告
 [Rewrite]
 request if ${url} ~= /^https:\/\/ads\.example\/v\d+/i then reject_dict(200)
 request if ${url} ~= /^https:\/\/ads\.example\/legacy/i then reject(404)
-response if ${url} ~= /^https:\/\/api\.example\/feed$/i then response.json.delete(["data.ad", "data.items[0]"])
-response if ${url} ~= /^https:\/\/api\.example\/search$/i then response.json.replace(["data.queries", "data.hint_word"], ["[]", "{}"])
+response if ${url} ~= /^https:\/\/api\.example\/feed$/i then response.json.delete(["data.ad", "data.items[0]", "result.quark-countdown-2025"])
+response if ${url} ~= /^https:\/\/api\.example\/search$/i then response.json.replace(["data.queries", "data.hint_word", "data.count"], ["[]", "{}", 0])
 response if ${url} ~= /^https:\/\/api\.example\/list$/i then response.json.jq(".data.items |= map(select(.kind == \"news\"))")
 ^https?:\/\/images\.example\/ad\.gif reject-img
 """
@@ -39,8 +79,8 @@ response if ${url} ~= /^https:\/\/api\.example\/list$/i then response.json.jq(".
         self.assertEqual(
             document.body_rewrite,
             [
-                r"(?i)^https://api\.example/feed$ response-jq del(.data.ad, .data.items[0])",
-                r"(?i)^https://api\.example/search$ response-jq (.data.queries = []) | (.data.hint_word = {})",
+                r'(?i)^https://api\.example/feed$ response-jq del(.data.ad, .data.items[0], .result."quark-countdown-2025")',
+                r"(?i)^https://api\.example/search$ response-jq (.data.queries = []) | (.data.hint_word = {}) | (.data.count = 0)",
                 r'(?i)^https://api\.example/list$ response-jq .data.items |= map(select(.kind == "news"))',
             ],
         )

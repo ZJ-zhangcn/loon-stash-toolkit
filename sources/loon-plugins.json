@@ -137,7 +137,14 @@
   {
     "name": "YouTube去广告",
     "source": "https://kelee.one/Tool/Loon/Lpx/YouTube_remove_ads.lpx",
-    "output": "YouTube_remove_ads.stoverride"
+    "output": "YouTube_remove_ads.stoverride",
+    "arguments": {
+      "blockUpload": true,
+      "blockShorts": true,
+      "blockImmersive": true,
+      "captionLang": "zh-Hans",
+      "debug": false
+    }
   },
   {
     "name": "番茄小说去广告",
@@ -147,6 +154,7 @@
   {
     "name": "美团 & 美团外卖",
     "source": "https://github.com/fmz200/wool_scripts/raw/main/Loon/plugin/split/partM/Meituan-MeituanWaimai.lpx",
-    "output": "Meituan-MeituanWaimai.stoverride"
+    "output": "Meituan-MeituanWaimai.stoverride",
+    "category": "去广告"
   }
 ]

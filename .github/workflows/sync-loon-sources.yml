@@ -1,0 +1,44 @@
+name: Sync upstream Loon plugins
+
+on:
+  schedule:
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: sync-loon-sources
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Convert sources and rebuild aggregate
+        run: |
+          python -m tools.sync_sources
+          ruby tools/generate_aggregate.rb
+      - name: Validate generated overrides
+        run: |
+          python -m unittest discover -s tests -v
+          git diff --check
+      - name: Open review pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          base: main
+          branch: automation/sync-loon-sources
+          delete-branch: true
+          commit-message: "chore: sync upstream Loon plugins"
+          title: "chore: sync upstream Loon plugins"
+          body: |
+            Automated daily sync of mapped upstream Loon plugins.
+
+            Conversion warnings and failing tests stop the workflow before this PR is created.
