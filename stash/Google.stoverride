@@ -6,10 +6,9 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Google.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
-
 http:
   mitm:
     - "www.google.cn"
   url-rewrite:
-    - "^https?:\\/\\/(www.)?(g|google)\\.cn https://www.google.com 307"
-    - "^https?:\\/\\/(ditu|maps).google\\.cn https://maps.google.com 307"
+    - "(?i)^https?://(www.)?(g|google)\\.cn https://www.google.com 307"
+    - "(?i)^https?://(ditu|maps).google\\.cn https://maps.google.com 307"
