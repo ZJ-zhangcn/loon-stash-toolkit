@@ -11,6 +11,7 @@ https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/stash/<文�
 ```
 
 - 24 个覆写来源于 `kelee.one`，源文件与输出映射见 `sources/loon-plugins.json`。
+- 合集版（24 个 Kelee 覆写 + Bilibili 衍生覆写）：[一键添加到 Stash](https://link.stash.ws/install-override/raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/stash/Kelee_All.stoverride)（[Raw 链接](https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/stash/Kelee_All.stoverride)）。原单项覆写仍保留，可独立启停。
 - `Bilibili_remove_ads.stoverride` 基于 [kokoryh/Sparkle 的 Loon 插件](https://github.com/kokoryh/Sparkle/blob/master/release/loon/plugin/bilibili.lpx)，按需固定参数：动态最常访问设为 `show`、过滤置顶评论广告、开启空降助手、关闭日志，`bsbsb.top` 走 `DIRECT`。我的页面移除会员购，底栏过滤发布（加号）入口。评论区 protobuf 请求脚本已启用；当前上游版本没有独立的请求优化开关。
 
 ## 双向转换

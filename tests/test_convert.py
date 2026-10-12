@@ -39,6 +39,7 @@ class ConversionTests(unittest.TestCase):
         )
         expected = {item["output"] for item in mappings}
         expected.add("Bilibili_remove_ads.stoverride")
+        expected.add("Kelee_All.stoverride")
         actual = {path.name for path in (ROOT / "stash").glob("*.stoverride")}
 
         self.assertTrue(all("kelee.one" in item["source"] for item in mappings))
@@ -68,6 +69,47 @@ class ConversionTests(unittest.TestCase):
                 self.assertTrue(required.issubset(metadata))
                 self.assertTrue(all(metadata[key].strip() for key in required))
                 self.assertTrue(metadata["icon"].startswith("https://"))
+
+    def test_aggregate_override_preserves_all_individual_content(self) -> None:
+        mappings = json.loads(
+            (ROOT / "sources" / "loon-plugins.json").read_text(encoding="utf-8")
+        )
+        paths = [ROOT / "stash" / item["output"] for item in mappings]
+        paths.append(ROOT / "stash" / "Bilibili_remove_ads.stoverride")
+        aggregate_path = ROOT / "stash" / "Kelee_All.stoverride"
+        self.assertTrue(aggregate_path.is_file())
+
+        source_docs = [parse_stash(path.read_text(encoding="utf-8")) for path in paths]
+        aggregate_text = aggregate_path.read_text(encoding="utf-8")
+        aggregate = parse_stash(aggregate_text)
+        self.assertEqual(aggregate.metadata["name"], "Kelee 覆写合集")
+
+        for field in (
+            "rules",
+            "mitm",
+            "url_rewrite",
+            "header_rewrite",
+            "body_rewrite",
+            "scripts",
+        ):
+            with self.subTest(field=field):
+                expected = [value for doc in source_docs for value in getattr(doc, field)]
+                self.assertEqual(getattr(aggregate, field), expected)
+
+        expected_providers = {
+            name: provider
+            for doc in source_docs
+            for name, provider in doc.script_providers.items()
+        }
+        self.assertEqual(aggregate.script_providers, expected_providers)
+        self.assertEqual(
+            aggregate.warnings,
+            [warning for doc in source_docs for warning in doc.warnings],
+        )
+        for path in paths:
+            for line in path.read_text(encoding="utf-8").splitlines():
+                if line.lstrip().startswith(("text:", "base64:")):
+                    self.assertIn(line.strip(), aggregate_text)
 
     def test_all_stash_overrides_convert_to_parseable_loon(self) -> None:
         for path in sorted((ROOT / "stash").glob("*.stoverride")):
