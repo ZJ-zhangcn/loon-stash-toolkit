@@ -43,10 +43,35 @@ class ConversionTests(unittest.TestCase):
         actual = {path.name for path in (ROOT / "stash").glob("*.stoverride")}
 
         self.assertTrue(all("kelee.one" in item["source"] for item in mappings))
-        self.assertEqual(len(mappings), 24)
+        self.assertEqual(len(mappings), 21)
         self.assertEqual(actual, expected)
+        for removed in (
+            "AppleWeatherEnhancer.stoverride",
+            "JD_Price.stoverride",
+            "Weibo_remove_ads.stoverride",
+        ):
+            self.assertNotIn(removed, actual)
         self.assertEqual(list((ROOT / "plugins").glob("*.lpx")), [])
         self.assertEqual(list((ROOT / "scripts").glob("*.js")), [])
+
+    def test_priority_overrides_are_first_in_the_aggregate(self) -> None:
+        mappings = json.loads(
+            (ROOT / "sources" / "loon-plugins.json").read_text(encoding="utf-8")
+        )
+        priority = [
+            "BlockAdvertisers.stoverride",
+            "Block_HTTPDNS.stoverride",
+        ]
+        self.assertEqual([item["output"] for item in mappings[:2]], priority)
+
+        priority_rules = []
+        for name in priority:
+            document = parse_stash((ROOT / "stash" / name).read_text(encoding="utf-8"))
+            priority_rules.extend(document.rules)
+        aggregate = parse_stash(
+            (ROOT / "stash" / "Kelee_All.stoverride").read_text(encoding="utf-8")
+        )
+        self.assertEqual(aggregate.rules[: len(priority_rules)], priority_rules)
 
     def test_all_kelee_overrides_have_complete_metadata(self) -> None:
         mappings = json.loads(

@@ -1,13 +1,13 @@
 [
   {
-    "name": "HTTPDNS拦截器",
-    "source": "https://kelee.one/Tool/Loon/Lpx/Block_HTTPDNS.lpx",
-    "output": "Block_HTTPDNS.stoverride"
-  },
-  {
     "name": "广告平台拦截器",
     "source": "https://kelee.one/Tool/Loon/Lpx/BlockAdvertisers.lpx",
     "output": "BlockAdvertisers.stoverride"
+  },
+  {
+    "name": "HTTPDNS拦截器",
+    "source": "https://kelee.one/Tool/Loon/Lpx/Block_HTTPDNS.lpx",
+    "output": "Block_HTTPDNS.stoverride"
   },
   {
     "name": "沃尔玛去广告",
@@ -90,11 +90,6 @@
     "output": "QQKSong_remove_ads.stoverride"
   },
   {
-    "name": "微博去广告",
-    "source": "https://kelee.one/Tool/Loon/Lpx/Weibo_remove_ads.lpx",
-    "output": "Weibo_remove_ads.stoverride"
-  },
-  {
     "name": "微信小程序去广告",
     "source": "https://kelee.one/Tool/Loon/Lpx/WexinMiniPrograms_Remove_ads.lpx",
     "output": "WexinMiniPrograms_Remove_ads.stoverride"
@@ -105,19 +100,8 @@
     "output": "Weixin_external_links_unlock.stoverride"
   },
   {
-    "name": "京东比价",
-    "source": "https://kelee.one/Tool/Loon/Lpx/JD_Price.lpx",
-    "output": "JD_Price.stoverride"
-  },
-  {
     "name": "QQ链接解锁",
     "source": "https://kelee.one/Tool/Loon/Lpx/QQ_Redirect.lpx",
     "output": "QQ_Redirect.stoverride"
-  },
-  {
-    "name": "Apple天气增强",
-    "source": "https://kelee.one/Tool/Loon/Lpx/AppleWeatherEnhancer.lpx",
-    "output": "AppleWeatherEnhancer.stoverride",
-    "argument_style": "pairs"
   }
 ]
