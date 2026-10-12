@@ -171,7 +171,10 @@ hostname = api.example.com
         ):
             self.assertNotIn(removed, actual)
         self.assertEqual(list((ROOT / "plugins").glob("*.lpx")), [])
-        self.assertEqual(list((ROOT / "scripts").glob("*.js")), [])
+        self.assertEqual(
+            {path.name for path in (ROOT / "scripts").glob("*.js")},
+            {"cmb-startup-ad.js", "freshippo-splash.js"},
+        )
 
     def test_priority_overrides_are_first_in_the_aggregate(self) -> None:
         mappings = json.loads(
