@@ -6,13 +6,12 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Walmart.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
-
 http:
   mitm:
     - "api-hyper.walmartmobile.cn"
   url-rewrite:
-    - "^https:\\/\\/api-hyper\\.walmartmobile\\.cn\\/search\\/ad\\/ - reject-dict"
-    - "^https:\\/\\/api-hyper\\.walmartmobile\\.cn\\/cms-web\\/frontapi\\/shadedWords\\/list\\? - reject-dict"
-    - "^https:\\/\\/api-hyper\\.walmartmobile\\.cn\\/search\\/frontapi\\/discovery-words\\/list$ - reject-dict"
+    - "(?i)^https://api-hyper\\.walmartmobile\\.cn/search/ad/ - reject-dict"
+    - "(?i)^https://api-hyper\\.walmartmobile\\.cn/cms-web/frontapi/shadedWords/list\\? - reject-dict"
+    - "(?i)^https://api-hyper\\.walmartmobile\\.cn/search/frontapi/discovery-words/list$ - reject-dict"
   body-rewrite:
-    - "^https:\\/\\/api-hyper\\.walmartmobile\\.cn\\/cms-web\\/frontapi\\/common\\/page\\/get\\?.*&type=26$ response-jq .data |= (.moduleList | map(select(.templateCode == \"nav-bar-title\" or .templateCode == \"member-info\" or .templateCode == \"distribution-center\" or .templateCode == \"wallet\" or .templateCode == \"swiper\" or .templateCode == \"my-order\")))"
+    - "(?i)^https://api-hyper\\.walmartmobile\\.cn/cms-web/frontapi/common/page/get\\?.*&type=26$ response-jq .data |= (.moduleList | map(select(.templateCode == \"nav-bar-title\" or .templateCode == \"member-info\" or .templateCode == \"distribution-center\" or .templateCode == \"wallet\" or .templateCode == \"swiper\" or .templateCode == \"my-order\")))"
