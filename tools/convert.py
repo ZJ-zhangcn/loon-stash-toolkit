@@ -433,16 +433,18 @@ def _loon_reject_action(action: str) -> str:
 
 def _jq_path(path: str) -> str:
     value = path.strip()
-    if not value.startswith("."):
+    if value.startswith("$."):
+        value = value[1:]
+    elif not value.startswith("."):
         value = f".{value}"
     if not re.fullmatch(
-        r"\.[A-Za-z_$][A-Za-z0-9_$-]*(?:\.[A-Za-z_$][A-Za-z0-9_$-]*|\[\d+\])*",
+        r"\.[A-Za-z0-9_$-]+(?:\.[A-Za-z0-9_$-]+|\[\d+\])*",
         value,
     ):
         raise ValueError(f"unsupported Loon JSON path: {path}")
     return re.sub(
-        r"\.([A-Za-z_$][A-Za-z0-9_$-]*)",
-        lambda match: f'."{match.group(1)}"' if "-" in match.group(1) else match.group(0),
+        r"\.([A-Za-z0-9_$-]+)",
+        lambda match: f'."{match.group(1)}"' if ("-" in match.group(1) or match.group(1)[0].isdigit()) else match.group(0),
         value,
     )
 

@@ -59,7 +59,7 @@ response if ${url} ~= /^https:\/\/api\.example\/ads$/i then response.body.mock("
 [Rewrite]
 request if ${url} ~= /^https:\/\/ads\.example\/v\d+/i then reject_dict(200)
 request if ${url} ~= /^https:\/\/ads\.example\/legacy/i then reject(404)
-response if ${url} ~= /^https:\/\/api\.example\/feed$/i then response.json.delete(["data.ad", "data.items[0]", "result.quark-countdown-2025"])
+response if ${url} ~= /^https:\/\/api\.example\/feed$/i then response.json.delete(["data.ad", "data.items[0]", "result.quark-countdown-2025", "data.920bestwishes"])
 response if ${url} ~= /^https:\/\/api\.example\/search$/i then response.json.replace(["data.queries", "data.hint_word", "data.count"], ["[]", "{}", 0])
 response if ${url} ~= /^https:\/\/api\.example\/list$/i then response.json.jq(".data.items |= map(select(.kind == \"news\"))")
 ^https?:\/\/images\.example\/ad\.gif reject-img
@@ -79,7 +79,7 @@ response if ${url} ~= /^https:\/\/api\.example\/list$/i then response.json.jq(".
         self.assertEqual(
             document.body_rewrite,
             [
-                r'(?i)^https://api\.example/feed$ response-jq del(.data.ad, .data.items[0], .result."quark-countdown-2025")',
+                r'(?i)^https://api\.example/feed$ response-jq del(.data.ad, .data.items[0], .result."quark-countdown-2025", .data."920bestwishes")',
                 r"(?i)^https://api\.example/search$ response-jq (.data.queries = []) | (.data.hint_word = {}) | (.data.count = 0)",
                 r'(?i)^https://api\.example/list$ response-jq .data.items |= map(select(.kind == "news"))',
             ],
