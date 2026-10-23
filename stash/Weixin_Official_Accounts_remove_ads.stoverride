@@ -7,7 +7,7 @@ icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px
 category: "去广告"
 date: "2026-10-02 13:57:49"
 rules:
-  - "DOMAIN-SUFFIX, wxs.qq.com, REJECT"
+  - "DOMAIN-SUFFIX,wxs.qq.com,REJECT"
 http:
   mitm:
     - "mp.weixin.qq.com"

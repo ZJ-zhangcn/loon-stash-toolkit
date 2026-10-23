@@ -751,6 +751,13 @@ def _parse_loon_script(
     )
 
 
+def _normalize_loon_rule(line: str) -> str:
+    """Loon 允许 `DOMAIN, x, PROXY` 这种带空格的写法，Stash 只认紧凑格式。"""
+    rule = re.sub(r"\s*,\s*", ",", line.strip())
+    # Loon 的 PROXY 是「默认策略」，Stash 没有同名出站，落地为 DIRECT
+    return re.sub(r",PROXY$", ",DIRECT", rule)
+
+
 def parse_loon(
     text: str, argument_values: dict[str, Any] | None = None
 ) -> Document:
@@ -792,6 +799,8 @@ def parse_loon(
                 document.warnings.append(str(exc))
             continue
         if section in LOON_SCRIPT_SECTIONS:
+            if section == "[RULE]":
+                line = _normalize_loon_rule(line)
             getattr(document, LOON_SCRIPT_SECTIONS[section]).append(line)
             continue
         if section == "[SCRIPT]":
@@ -834,7 +843,9 @@ def to_stash(document: Document, stem: str = "plugin") -> str:
     output.append(f"name: {_quote(metadata['name'])}")
     if metadata.get("desc"):
         output.append("desc: |-")
-        output.extend(f"  {line}" for line in metadata["desc"].splitlines())
+        # Loon 的 #!desc 用字面量 \n 分段，块标量里要还原成真换行
+        desc = metadata["desc"].replace("\\n", "\n")
+        output.extend(f"  {line}" for line in desc.splitlines())
     for key in ("author", "homepage", "icon"):
         if metadata.get(key):
             output.append(f"{key}: {_quote(metadata[key])}")

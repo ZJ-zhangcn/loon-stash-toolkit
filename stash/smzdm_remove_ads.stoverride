@@ -7,7 +7,7 @@ icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px
 category: "去广告"
 date: "2026-10-02 13:57:49"
 rules:
-  - "DOMAIN, adx-api.zdmimg.com, REJECT"
+  - "DOMAIN,adx-api.zdmimg.com,REJECT"
 http:
   mitm:
     - "app-api.smzdm.com"
