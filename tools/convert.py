@@ -13,6 +13,7 @@ import csv
 import json
 import re
 import sys
+import urllib.request
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Iterable
@@ -468,7 +469,32 @@ def _jq_literal(value: Any) -> str:
     return json.dumps(parsed, ensure_ascii=False, separators=(",", ":"))
 
 
-def _loon_response_jq(action: str) -> str:
+JQ_MIRROR_PREFIX = "https://git.repcz.link/kelee.one/"
+
+
+def _fetch_jq_program(url: str) -> str:
+    """取远端 .jq 并压成单行：Stash response-jq 只能内联表达式。"""
+    mirror = url.replace("https://kelee.one/", JQ_MIRROR_PREFIX)
+    try:
+        request = urllib.request.Request(mirror, headers={"User-Agent": "Mozilla/5.0"})
+        source = urllib.request.urlopen(request, timeout=30).read().decode("utf-8")
+    except Exception as exc:
+        raise ValueError(f"cannot fetch jq program {url}: {exc}") from exc
+    kept = []
+    for line in source.split("\n"):
+        if line.lstrip().startswith("#"):
+            continue
+        kept.append(re.sub(r"\s+#\s.*$", "", line))
+    return " ".join(part.strip() for part in kept if part.strip())
+
+
+def _loon_response_jq(action: str, fetch: bool = True) -> str:
+    jq_file = "response.json.jq_file("
+    if action.startswith(jq_file) and action.endswith(")"):
+        url = json.loads(action[len(jq_file) : -1])
+        if not fetch:
+            raise ValueError(f"jq_file needs --inline-jq to fetch: {url}")
+        return _fetch_jq_program(url)
     for method in ("jq", "delete", "replace"):
         prefix = f"response.json.{method}("
         if not action.startswith(prefix) or not action.endswith(")"):
