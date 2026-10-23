@@ -155,12 +155,12 @@ hostname = api.example.com
         expected.add("Kelee_All.stoverride")
         actual = {path.name for path in (ROOT / "stash").glob("*.stoverride")}
 
-        self.assertEqual(len(mappings), 30)
+        self.assertEqual(len(mappings), 31)
         self.assertEqual(
-            sum("kelee.one" in item["source"] for item in mappings), 29
+            sum("kelee.one" in item["source"] for item in mappings), 30
         )
         self.assertEqual(
-            mappings[-1]["source"],
+            mappings[-2]["source"],
             "https://github.com/fmz200/wool_scripts/raw/main/Loon/plugin/split/partM/Meituan-MeituanWaimai.lpx",
         )
         self.assertEqual(actual, expected)

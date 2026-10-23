@@ -522,6 +522,36 @@ def _loon_response_jq(action: str, fetch: bool = True) -> str:
     raise ValueError(f"unsupported Loon response rewrite: {action}")
 
 
+def _split_loon_call(text: str) -> list[str]:
+    """按顶层逗号切分 Loon 调用参数，保留双引号内的逗号与转义。"""
+    parts: list[str] = []
+    buffer: list[str] = []
+    quoted = escaped = False
+    for char in text:
+        if escaped:
+            buffer.append(char)
+            escaped = False
+            continue
+        if char == "\\" and quoted:
+            buffer.append(char)
+            escaped = True
+            continue
+        if char == '"':
+            quoted = not quoted
+            buffer.append(char)
+            continue
+        if char == "," and not quoted:
+            parts.append("".join(buffer).strip())
+            buffer = []
+            continue
+        buffer.append(char)
+    parts.append("".join(buffer).strip())
+    return [
+        json.loads(part) if len(part) >= 2 and part[0] == part[-1] == '"' else part
+        for part in parts
+    ]
+
+
 def _parse_loon_rewrite(line: str) -> tuple[str, str]:
     condition = _parse_loon_url_condition(line)
     if condition:
@@ -547,16 +577,28 @@ def _parse_loon_rewrite(line: str) -> tuple[str, str]:
                 return "url_rewrite", f"{pattern} {target} {arguments[0]}"
             return "url_rewrite", f"{pattern} - {_loon_reject_action(action)}"
         if action.startswith("response.body.mock(") and action.endswith(")"):
-            arguments = next(
-                csv.reader(
-                    [action[len("response.body.mock(") : -1]], skipinitialspace=True
-                )
-            )
-            if len(arguments) != 2 or arguments[0] != "text":
+            arguments = _split_loon_call(action[len("response.body.mock(") : -1])
+            if len(arguments) < 2 or arguments[0] != "text":
                 raise ValueError(f"unsupported Loon body mock action: {action}")
+            payload = arguments[1]
+            if len(arguments) >= 3 and arguments[2] != "200":
+                raise ValueError(f"unsupported Loon mock status: {action}")
+            if len(arguments) >= 4 and arguments[3].lower() == "true":
+                return "body_rewrite", f"{pattern} response-replace-regex (?s)^.*$ {payload}"
+            try:
+                body = json.loads(payload) if payload else ""
+            except json.JSONDecodeError as exc:
+                raise ValueError(f"unsupported Loon mock body: {action}") from exc
+            if body == "":
+                value = '""'
+            else:
+                value = _quote(json.dumps(body, ensure_ascii=False, separators=(",", ":")))
+            return "body_rewrite", f"{pattern} response-replace-regex (?s)^.*$ {value}"
+        header_add = re.fullmatch(r'response[.]header[.]add\("([^"]+)",\s*"([^"]*)"\)', action)
+        if header_add:
             return (
                 "body_rewrite",
-                f"{pattern} response-replace-regex (?s)^.*$ {_quote(arguments[1])}",
+                f"{pattern} response-header-add {_quote(header_add.group(1))} {_quote(header_add.group(2))}",
             )
         return "body_rewrite", f"{pattern} response-jq {_loon_response_jq(action)}"
 
