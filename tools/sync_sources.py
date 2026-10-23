@@ -8,7 +8,7 @@ from typing import Any
 from urllib.parse import urlsplit
 from urllib.request import Request, urlopen
 
-from .convert import parse_loon, to_stash
+from .convert import parse_loon, parse_stash, to_stash
 
 ROOT = Path(__file__).resolve().parents[1]
 MAPPING_PATH = ROOT / "sources" / "loon-plugins.json"
@@ -85,6 +85,40 @@ def convert_source(item: dict[str, Any], source_text: str) -> str:
     return output
 
 
+def inherit_payloads(path: Path, output: str) -> str:
+    """重写时沿用旧文件里的 payload 快照，避免每日同步把离线脚本清掉。"""
+    if not path.is_file():
+        return output
+    try:
+        previous = parse_stash(path.read_text(encoding="utf-8"))
+    except (ValueError, KeyError):
+        return output
+    if "script-providers:" not in output:
+        return output
+    previous_providers = previous.script_providers
+
+    lines = output.split("\n")
+    index = lines.index("script-providers:")
+    index += 1
+    while index < len(lines):
+        name_match = re.match(r'^  "?([\w.-]+)"?:$', lines[index])
+        if not name_match:
+            index += 1
+            continue
+        name = name_match.group(1)
+        end = index + 1
+        while end < len(lines) and lines[end].startswith("    "):
+            end += 1
+        body = (previous_providers.get(name) or {}).get("payload")
+        if isinstance(body, str) and body:
+            block = ["    payload: |-"]
+            block.extend(f"      {line}" if line.strip() else "" for line in body.split("\n"))
+            lines[end:end] = block
+            end += len(block)
+        index = end
+    return "\n".join(lines)
+
+
 def sync_sources(root: Path = ROOT, dry_run: bool = False) -> list[str]:
     mappings = json.loads((root / "sources" / "loon-plugins.json").read_text(encoding="utf-8"))
     generated: list[tuple[Path, str]] = []
@@ -93,8 +127,12 @@ def sync_sources(root: Path = ROOT, dry_run: bool = False) -> list[str]:
         if Path(output_name).name != output_name or not output_name.endswith(".stoverride"):
             raise ValueError(f"invalid output filename in source mapping: {output_name!r}")
         source_text = fetch_source(item["source"])
+        output_path = root / "stash" / output_name
         generated.append(
-            (root / "stash" / output_name, convert_source(item, source_text))
+            (
+                output_path,
+                inherit_payloads(output_path, convert_source(item, source_text)),
+            )
         )
 
     changed = [
