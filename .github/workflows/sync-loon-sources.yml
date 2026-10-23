@@ -8,6 +8,7 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  issues: write
 
 concurrency:
   group: sync-loon-sources
@@ -18,9 +19,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+      - name: Install test dependencies
+        run: pip install pyyaml
       - name: Convert sources and rebuild aggregate
         run: |
           python -m tools.sync_sources
@@ -29,16 +34,37 @@ jobs:
         run: |
           python -m unittest discover -s tests -v
           git diff --check
-      - name: Open review pull request
-        uses: peter-evans/create-pull-request@v7
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          base: main
-          branch: automation/sync-loon-sources
-          delete-branch: true
-          commit-message: "chore: sync upstream Loon plugins"
-          title: "chore: sync upstream Loon plugins"
-          body: |
-            Automated daily sync of mapped upstream Loon plugins.
+      - name: Detect changes
+        id: changes
+        run: |
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Commit and push to main
+        if: steps.changes.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "chore: sync upstream Loon plugins"
+          git push origin HEAD:main
 
-            Conversion warnings and failing tests stop the workflow before this PR is created.
+  notify-failure:
+    needs: sync
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Push failure notice to Telegram
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          text="⚠️ Loon 同步失败：${{ github.repository }}（${{ github.ref_name }}）
+          $RUN_URL"
+          curl -fsS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+            --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+            --data-urlencode "disable_web_page_preview=true" \
+            --data-urlencode "text=${text}"
