@@ -167,6 +167,7 @@
       "optimizeRequest": true,
       "sponsorBlock": true,
       "logLevel": "off"
-    }
+    },
+    "drop_header_rewrite": true
   }
 ]

@@ -70,6 +70,11 @@ def convert_source(item: dict[str, Any], source_text: str) -> str:
     if item.get("category"):
         document.metadata["category"] = item["category"]
 
+    # 某些 Loon 插件用 response.header.add 补 grpc-status，而 Stash 的 mock 已能直接声明
+    # 响应头；两者重复时保留 mock、丢掉 header 改写，避免引入未验证的 rewrite 段。
+    if item.get("drop_header_rewrite"):
+        document.header_rewrite.clear()
+
     required: list[str] = list(REQUIRED_METADATA)
     if not (document.metadata.get("category") or document.metadata.get("tag")):
         required.append("category")
