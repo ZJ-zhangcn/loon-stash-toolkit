@@ -12,11 +12,11 @@ http:
   mitm:
     - "api.m.jd.com"
   url-rewrite:
-    - "(?i)^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(searchBoxWord|stationPullService|uniformRecommend[06]) - reject-dict"
+    - "^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(searchBoxWord|stationPullService|uniformRecommend[06]) - reject-dict"
   body-rewrite:
-    - "(?i)^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=basicConfig response-jq (.data.JDMessage.socketmonitor.isSocketEstablishedAhead = 0) | (.data.JDMessage.socketmonitor.isSocketReport = 0) | (.data.JDHttpToolKit.httpdns.httpdns = 0)"
+    - "^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=basicConfig response-jq (.data.JDMessage.socketmonitor.isSocketEstablishedAhead = 0) | (.data.JDMessage.socketmonitor.isSocketReport = 0) | (.data.JDHttpToolKit.httpdns.httpdns = 0)"
   script:
-    - match: "(?i)^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome)"
+    - match: "^https:\\/\\/api\\.m\\.jd\\.com\\/client\\.action\\?functionId=(deliverLayer|getTabHomeInfo|myOrderInfo|orderTrackBusiness|personinfoBusiness|start|welcomeHome)"
       name: "loon_jd_remove_ads_01"
       type: "response"
       require-body: true

@@ -411,8 +411,9 @@ def _normalize_loon_regex(pattern: str, flags: str = "") -> str:
 
     `(?i)` 可以保留（其它覆写已在使用），但不能让裸 `/` 进到 match 里。
     """
-    pattern = pattern.replace(r"\/", "/").replace("/", r"\/")
-    return f"(?i){pattern}" if "i" in flags and "(?i)" not in pattern else pattern
+    # Stash 的 match 不接受内联 (?i)，可用的 Bilibili 覆写全部不带该 flag
+    pattern = pattern.replace(r"\/", "/").replace("(?i)", "").replace("/", r"\/")
+    return pattern
 
 
 def _parse_loon_url_condition(

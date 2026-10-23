@@ -22,7 +22,7 @@ request if ${url} ~= /^https?:\/\/(www.)?(g|google)\.cn/i then redirect(307, "ht
         document = parse_stash(converted)
         self.assertEqual(
             document.url_rewrite,
-            [r"(?i)^https?:\/\/(www.)?(g|google)\.cn https://www.google.com 307"],
+            [r"^https?:\/\/(www.)?(g|google)\.cn https://www.google.com 307"],
         )
 
     def test_loon_redirect_capture_variable_maps_to_stash_groups(self) -> None:
@@ -35,7 +35,7 @@ request if ${url} ~= /^https:\/\/example\.com\/go\/(first)\/(second)$/i as urlMa
 
         self.assertEqual(
             document.url_rewrite,
-            [r"(?i)^https:\/\/example\.com\/go\/(first)\/(second)$ $2 307"],
+            [r"^https:\/\/example\.com\/go\/(first)\/(second)$ $2 307"],
         )
 
     def test_loon_response_text_mock_replaces_the_entire_body(self) -> None:
@@ -48,7 +48,7 @@ response if ${url} ~= /^https:\/\/api\.example\/ads$/i then response.body.mock("
         document = parse_stash(converted)
 
         self.assertEqual(len(document.mocks), 1)
-        self.assertEqual(document.mocks[0]["match"], r"(?i)^https:\/\/api\.example\/ads$")
+        self.assertEqual(document.mocks[0]["match"], r"^https:\/\/api\.example\/ads$")
         self.assertEqual(document.mocks[0]["text"], "")
         self.assertEqual(int(document.mocks[0]["status-code"]), 200)
         self.assertEqual(document.body_rewrite, [])
@@ -72,17 +72,17 @@ response if ${url} ~= /^https:\/\/api\.example\/list$/i then response.json.jq(".
         self.assertEqual(
             document.url_rewrite,
             [
-                r"(?i)^https:\/\/ads\.example\/v\d+ - reject-dict",
-                r"(?i)^https:\/\/ads\.example\/legacy - reject",
+                r"^https:\/\/ads\.example\/v\d+ - reject-dict",
+                r"^https:\/\/ads\.example\/legacy - reject",
                 r"^https?:\/\/images\.example\/ad\.gif - reject-img",
             ],
         )
         self.assertEqual(
             document.body_rewrite,
             [
-                r'(?i)^https:\/\/api\.example\/feed$ response-jq del(.data.ad, .data.items[0], .result."quark-countdown-2025", .data."920bestwishes")',
-                r"(?i)^https:\/\/api\.example\/search$ response-jq (.data.queries = []) | (.data.hint_word = {}) | (.data.count = 0)",
-                r'(?i)^https:\/\/api\.example\/list$ response-jq .data.items |= map(select(.kind == "news"))',
+                r'^https:\/\/api\.example\/feed$ response-jq del(.data.ad, .data.items[0], .result."quark-countdown-2025", .data."920bestwishes")',
+                r"^https:\/\/api\.example\/search$ response-jq (.data.queries = []) | (.data.hint_word = {}) | (.data.count = 0)",
+                r'^https:\/\/api\.example\/list$ response-jq .data.items |= map(select(.kind == "news"))',
             ],
         )
         self.assertEqual(warnings, [])
@@ -109,7 +109,7 @@ hostname = api.example.com
         document = parse_stash(converted)
 
         self.assertEqual(len(document.scripts), 2)
-        self.assertEqual(document.scripts[0].match, r"(?i)^https:\/\/api\.example\/v1")
+        self.assertEqual(document.scripts[0].match, r"^https:\/\/api\.example\/v1")
         self.assertEqual(document.scripts[0].type, "response")
         self.assertTrue(document.scripts[0].require_body)
         self.assertTrue(document.scripts[0].binary_mode)

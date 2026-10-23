@@ -36,5 +36,5 @@ http:
     - "push.m.youku.com"
     - "un-acs.youku.com"
   body-rewrite:
-    - "(?i)^https:\\/\\/un-acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.play\\.ups\\.appinfo\\.get response-jq del(.data.data.ad, .data.data.watermark, .data.data.ykad)"
-    - "(?i)^https:\\/\\/push\\.m\\.youku\\.com\\/collect-api\\/get_push_interval_config_wx\\? response-jq del(.data.tipContent, .data.tipContentNew)"
+    - "^https:\\/\\/un-acs\\.youku\\.com\\/gw\\/mtop\\.youku\\.play\\.ups\\.appinfo\\.get response-jq del(.data.data.ad, .data.data.watermark, .data.data.ykad)"
+    - "^https:\\/\\/push\\.m\\.youku\\.com\\/collect-api\\/get_push_interval_config_wx\\? response-jq del(.data.tipContent, .data.tipContentNew)"
