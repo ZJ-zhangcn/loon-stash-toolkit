@@ -1505,62 +1505,6 @@ http:
       name: loon_pinduoduo_remove_ads_01
       type: response
       require-body: true
-    - match: "(?i)^https://m5\\.amap\\.com/ws/aos/perception/publicTravel/beforeNavi\\?"
-      name: loon_amap_remove_ads_01
-      type: response
-      require-body: true
-    - match: "(?i)^https://m5\\.amap\\.com/ws/bus/plan/integrate\\?"
-      name: loon_amap_remove_ads_02
-      type: response
-      require-body: true
-    - match: "(?i)^https://m5\\.amap\\.com/ws/c3frontend/(af-(hotel|launch)/page/main|af-nearby/nearby)"
-      name: loon_amap_remove_ads_03
-      type: response
-      require-body: true
-    - match: "(?i)^https://m5\\.amap\\.com/ws/perception/drive/(routeInfo|routePlan)"
-      name: loon_amap_remove_ads_04
-      type: response
-      require-body: true
-    - match: "(?i)^https://m5\\.amap\\.com/ws/shield/search_bff/hotword\\?"
-      name: loon_amap_remove_ads_05
-      type: response
-      require-body: true
-    - match: "(?i)^https://m5\\.amap\\.com/ws/shield/search_poi/(mps|search/sp|sug|tips_operation_location)"
-      name: loon_amap_remove_ads_06
-      type: response
-      require-body: true
-    - match: "(?i)^https://m5\\.amap\\.com/ws/faas/amap-navigation/(card-service-plan-home|main-page)"
-      name: loon_amap_remove_ads_07
-      type: response
-      require-body: true
-    - match: "(?i)^https://m5\\.amap\\.com/ws/shield/frogserver/aocs/updatable/1\\?"
-      name: loon_amap_remove_ads_08
-      type: response
-      require-body: true
-    - match: "(?i)^https://m5\\.amap\\.com/ws/shield/dsp/profile/index/nodefaasv3\\?"
-      name: loon_amap_remove_ads_09
-      type: response
-      require-body: true
-    - match: "(?i)^https://m5\\.amap\\.com/ws/shield/search/nearbyrec_smart\\?"
-      name: loon_amap_remove_ads_10
-      type: response
-      require-body: true
-    - match: "(?i)^https://m5\\.amap\\.com/ws/valueadded/alimama/splash_screen\\?"
-      name: loon_amap_remove_ads_11
-      type: response
-      require-body: true
-    - match: "(?i)^https://m5-zb\\.amap\\.com/ws/boss/(car/order/content_info|order_web/friendly_information)"
-      name: loon_amap_remove_ads_12
-      type: response
-      require-body: true
-    - match: "(?i)^https://m5-zb\\.amap\\.com/ws/promotion-web/resource(/home)?\\?"
-      name: loon_amap_remove_ads_13
-      type: response
-      require-body: true
-    - match: "(?i)^https://(info|m5)\\.amap\\.com/ws/shield/search/(common/coupon/info|poi/detail)"
-      name: loon_amap_remove_ads_14
-      type: response
-      require-body: true
     - match: "(?i)^https://guide-acs\\.m\\.taobao\\.com/gw/mtop\\.taobao\\.(cloudvideo\\.video\\.query|wireless\\.home\\.splash\\.awesome\\.get)"
       name: loon_taobao_remove_ads_01
       type: response
@@ -1913,48 +1857,6 @@ script-providers:
       body = trimNextData(body);
 
       $done({ body });
-  loon_amap_remove_ads_01:
-    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js
-    interval: 86400
-  loon_amap_remove_ads_02:
-    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js
-    interval: 86400
-  loon_amap_remove_ads_03:
-    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js
-    interval: 86400
-  loon_amap_remove_ads_04:
-    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js
-    interval: 86400
-  loon_amap_remove_ads_05:
-    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js
-    interval: 86400
-  loon_amap_remove_ads_06:
-    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js
-    interval: 86400
-  loon_amap_remove_ads_07:
-    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js
-    interval: 86400
-  loon_amap_remove_ads_08:
-    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js
-    interval: 86400
-  loon_amap_remove_ads_09:
-    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js
-    interval: 86400
-  loon_amap_remove_ads_10:
-    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js
-    interval: 86400
-  loon_amap_remove_ads_11:
-    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js
-    interval: 86400
-  loon_amap_remove_ads_12:
-    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js
-    interval: 86400
-  loon_amap_remove_ads_13:
-    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js
-    interval: 86400
-  loon_amap_remove_ads_14:
-    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Amap/Amap_remove_ads.js
-    interval: 86400
   loon_taobao_remove_ads_01:
     url: https://git.repcz.link/kelee.one/Resource/JavaScript/Taobao/Taobao_remove_ads.js
     interval: 86400
@@ -7791,4 +7693,4 @@ script-providers:
   bilibili-webpage:
     url: https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/webpage.bilibili.js
     interval: 86400
-date: '2026-10-23 18:20:58'
+date: '2026-10-23 18:52:51'
