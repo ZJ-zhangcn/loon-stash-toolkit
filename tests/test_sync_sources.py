@@ -9,6 +9,8 @@ from unittest.mock import patch
 from tools.convert import parse_stash
 from tools.sync_sources import convert_source, source_fetch_url, sync_sources
 
+ROOT = Path(__file__).resolve().parents[1]
+
 
 class SyncSourcesTests(unittest.TestCase):
     def test_manifest_keeps_youtube_options_and_meituan_category(self) -> None:
@@ -37,6 +39,14 @@ class SyncSourcesTests(unittest.TestCase):
         )
         external = "https://github.com/fmz200/wool_scripts/raw/main/example.lpx"
         self.assertEqual(source_fetch_url(external), external)
+
+    def test_kelee_bilibili_override_has_no_header_rewrite(self) -> None:
+        """header-rewrite 曾让 kelee 哔哩哔哩覆写加载后所有覆写脚本失效。"""
+        path = ROOT / "stash" / "Bilibili_kelee_remove_ads.stoverride"
+        text = path.read_text(encoding="utf-8")
+        self.assertNotIn("header-rewrite", text)
+        self.assertNotIn("response-add", text)
+        self.assertEqual(parse_stash(text).header_rewrite, [])
 
     def test_conversion_uses_manifest_arguments_and_category(self) -> None:
         item = {
