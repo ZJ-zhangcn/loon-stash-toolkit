@@ -3036,4 +3036,4 @@ script-providers:
   bilibili-webpage:
     url: https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/webpage.bilibili.js
     interval: 86400
-date: '2026-10-24 02:05:18'
+date: '2026-10-23 18:06:14'
