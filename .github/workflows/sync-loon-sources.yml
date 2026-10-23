@@ -33,6 +33,7 @@ jobs:
       - name: Validate generated overrides
         run: |
           python -m unittest discover -s tests -v
+          python tools/lint_override.py
           git diff --check
       - name: Detect changes
         id: changes
