@@ -46,6 +46,11 @@ priority_paths = paths.first(2)
 priority_rules = priority_paths.flat_map { |path| YAML.safe_load(File.read(path)).fetch("rules", []) }
 raise "priority rules are not first" unless result.fetch("rules", []).first(priority_rules.length) == priority_rules
 
+# 脚本 payload: YAML.dump 会退化成转义双引号串，大 payload 易触发转义/解析问题；
+# 先摘出来，dump 完再以 |- 块追加回各 provider 末尾（payload 是 script-providers 的最后一个键）。
+payloads = (result["script-providers"] || {}).to_h { |name, provider| [name, provider["payload"]] }
+payloads.each_key { |name| result["script-providers"][name].delete("payload") }
+
 output_path = File.join(ROOT, "stash/Kelee_All.stoverride")
 existing = YAML.safe_load(File.read(output_path)) if File.file?(output_path)
 result["date"] = if existing.is_a?(Hash) && existing.reject { |key, _| key == "date" } == result
@@ -54,7 +59,19 @@ result["date"] = if existing.is_a?(Hash) && existing.reject { |key, _| key == "d
                    Time.now.strftime("%Y-%m-%d %H:%M:%S")
                  end
 output = YAML.dump(result, line_width: -1).sub(/\A---\s*\n/, "")
+# payload 以 |- 块追加回各 provider 末尾；payload 带内容时 YAML.dump 一定已把该 provider 渲染为多行
 lines = output.lines
+payloads.each do |name, body|
+  next if body.nil?
+  head = "  #{name}:"
+  at = lines.index { |line| line.rstrip == head }
+  raise "provider #{name} not found in aggregate dump" unless at
+  cursor = at + 1
+  cursor += 1 while cursor < lines.length && lines[cursor].start_with?("    ")
+  body = body.end_with?("\n") ? body : "#{body}\n"
+  block = ["    payload: |-\n"] + body.split("\n", -1)[0..-2].map { |line| line.lstrip.empty? ? "\n" : "      #{line}\n" }
+  lines.insert(cursor, *block)
+end
 index = 0
 while index < lines.length
   match = /\A( *)([^-\s].*?):\s*\r?\n?\z/.match(lines[index])
@@ -77,7 +94,22 @@ while index < lines.length
   index += 1
 end
 output = lines.join.gsub(/^[ \t]+$/, "")
-raise "YAML round-trip changed aggregate" unless YAML.safe_load(output) == result
+# 回读校验：payload 由块标量拼回，逐条与源比对
+parsed = YAML.safe_load(output)
+raise "aggregate providers mismatch" unless parsed["script-providers"].size == payloads.size
+payloads.each do |name, body|
+  next if body.nil?
+  at = lines.index { |line| line.rstrip == "  #{name}:" }
+  raise "provider #{name} missing" unless at
+  found = false
+  (at + 1...lines.length).each do |i|
+    break unless lines[i].start_with?("    ")
+    if lines[i].strip == "payload: |-" then found = true; break end
+  end
+  raise "payload block missing for #{name}" unless found
+  round_trip = parsed["script-providers"][name]["payload"]
+  raise "payload round-trip mismatch for #{name}" unless round_trip == body
+end
 
 unless File.file?(output_path) && File.read(output_path) == output
   File.write(output_path, output)

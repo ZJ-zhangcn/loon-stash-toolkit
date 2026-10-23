@@ -345,5 +345,26 @@ hostname = api.example.com
         self.assertIn('(.uri != "bilibili://mall/home")', bottom_rule)
 
 
+    def test_script_provider_payload_block_scalar_round_trip(self) -> None:
+        body = "let a = 1;\n  indented();\n*star\n\t\ttabbed\n"
+        text = (
+            "name: t\n"
+            "http:\n"
+            "  script:\n"
+            "    - match: '^https://a/' \n"
+            "      name: s1\n"
+            "      type: response\n"
+            "script-providers:\n"
+            '  s1:\n'
+            '    url: https://example.com/a.js\n'
+            "    interval: 86400\n"
+            "    payload: |-\n"
+            + "".join(f"      {line}\n" for line in body.splitlines())
+        )
+        document = parse_stash(text)
+        self.assertEqual(document.script_providers["s1"]["payload"], body.rstrip("\n"))
+        self.assertEqual(document.script_providers["s1"]["interval"], "86400")
+
+
 if __name__ == "__main__":
     unittest.main()

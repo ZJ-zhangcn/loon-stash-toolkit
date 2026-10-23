@@ -121,6 +121,7 @@ def _consume_block_scalar(
     lines: list[str], start: int, parent_indent: int, marker: str
 ) -> tuple[int, str]:
     collected: list[str] = []
+    content_indent: int | None = None
     index = start
     while index < len(lines):
         line = lines[index]
@@ -130,8 +131,10 @@ def _consume_block_scalar(
             continue
         if _indent_of(line) <= parent_indent:
             break
-        content_indent = parent_indent + 2
-        collected.append(line[content_indent:] if len(line) >= content_indent else "")
+        if content_indent is None:
+            # YAML 块标量的内容缩进由第一个非空行决定；固定 +2 会在更深缩进时吃掉首字符
+            content_indent = _indent_of(line)
+        collected.append(line[content_indent:])
         index += 1
 
     if marker.startswith(">"):
@@ -314,6 +317,11 @@ def _consume_script_providers(
             if parsed_inner is None or inner_indent != 4:
                 raise ValueError(f"invalid script provider property: {inner}")
             _, key, inner_value = parsed_inner
+            if inner_value.strip() in {"|", "|-", ">", ">-"}:
+                index, provider[key] = _consume_block_scalar(
+                    lines, index + 1, inner_indent, inner_value.strip()
+                )
+                continue
             provider[key] = _parse_scalar(inner_value)
             index += 1
         providers[name] = provider
