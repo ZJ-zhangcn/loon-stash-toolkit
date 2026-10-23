@@ -534,6 +534,8 @@ rules:
   - DOMAIN, amap-aos-info-nogw.amap.com, REJECT
   - DOMAIN, free-aos-cdn-image.amap.com, REJECT
   - DOMAIN-SUFFIX, v.smtcdns.com, REJECT
+  - URL-REGEX, ^https:\/\/m5-zb\.amap\.com/ws/ride/home/page/get_commuting_card\?, REJECT
+  - URL-REGEX, ^https:\/\/m5\.amap\.com/ws/shield/search_business/process/orderList\?, REJECT
   - DOMAIN, adashx.m.taobao.com, REJECT
   - DOMAIN, ossgw.alicdn.com, REJECT
   - DOMAIN, ems.youku.com, REJECT
@@ -1980,4 +1982,4 @@ script-providers:
   bilibili-webpage:
     url: https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/webpage.bilibili.js
     interval: 86400
-date: '2026-10-12 12:28:52'
+date: '2026-10-23 15:05:32'
