@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import glob
 import re
+import shutil
+import subprocess
 import sys
 
 import yaml
@@ -102,6 +104,24 @@ def check(path: str) -> list[str]:
                 errors.append(f"http.{section}[{index}] 头操作不属于 body-rewrite: {found}")
             elif section == "header-rewrite" and found.endswith(("jq",)):
                 errors.append(f"http.{section}[{index}] jq 不属于 header-rewrite: {found}")
+
+    # jq 程序必须能编译：曾因压平多行 jq 时保留 # 注释，导致第一条注释之后全部失效
+    jq_binary = shutil.which("jq")
+    if jq_binary:
+        for index, value in enumerate(http.get("body-rewrite") or [], 1):
+            if not isinstance(value, str):
+                continue
+            program = re.search(r" response-jq (.*)$", value, re.S)
+            if not program:
+                continue
+            result = subprocess.run(
+                [jq_binary, "-n", "def _lint: (" + program.group(1) + "); 0"],
+                capture_output=True,
+                text=True,
+            )
+            if result.returncode:
+                message = result.stderr.strip().splitlines()[0] if result.stderr else "unknown"
+                errors.append(f"http.body-rewrite[{index}] jq 编译失败: {message[:140]}")
 
     for index, script in enumerate(http.get("script") or [], 1):
         if not isinstance(script, dict):

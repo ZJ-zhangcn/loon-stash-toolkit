@@ -11,6 +11,7 @@ sys.path.insert(0, str(ROOT))
 
 from tools.convert import (  # noqa: E402
     BODY_REWRITE_MAX_CHARS,
+    _flatten_jq,
     _split_oversized_del,
     convert_text,
     parse_loon,
@@ -413,6 +414,24 @@ class OversizedBodyRewriteTests(unittest.TestCase):
         self.assertEqual(_split_oversized_del(short), [short])
         long_other = "^https://example\\.com\\/ response-jq " + ".a = 1 | " * 900
         self.assertEqual(_split_oversized_del(long_other), [long_other])
+
+
+class JqCommentTests(unittest.TestCase):
+    """压平多行 jq 前必须剥掉 # 注释，否则第一条注释会吃掉后面整个程序。"""
+
+    def test_strips_inline_comments_before_flattening(self) -> None:
+        source = 'IN(\n  "a",   # 说明一\n  "b",   # 说明二\n  "c"\n)'
+        flat = _flatten_jq(source)
+        self.assertNotIn("#", flat)
+        self.assertEqual(flat, 'IN( "a", "b", "c" )')
+
+    def test_keeps_hash_inside_strings(self) -> None:
+        source = '.x = "a#b"  # 注释'
+        self.assertEqual(_flatten_jq(source), '.x = "a#b"')
+
+    def test_escaped_quote_does_not_end_string(self) -> None:
+        source = '.x = "a\\"#b"  # 注释'
+        self.assertIn('"a\\"#b"', _flatten_jq(source))
 
 
 if __name__ == "__main__":

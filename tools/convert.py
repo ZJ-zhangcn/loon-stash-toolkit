@@ -493,9 +493,41 @@ def _fetch_jq_program(url: str) -> str:
     return " ".join(part.strip() for part in kept if part.strip())
 
 
+def _strip_jq_comments(expression: str) -> str:
+    """去掉 jq 的 # 行注释，字符串内的 # 保留。
+
+    jq 注释吃到行尾，而 Stash 的 response-jq 必须是单行；先把注释剥掉再压平，
+    否则第一个 # 会把后面的整个程序注释掉。
+    """
+    out: list[str] = []
+    quoted = escaped = False
+    index = 0
+    while index < len(expression):
+        char = expression[index]
+        if escaped:
+            out.append(char)
+            escaped = False
+        elif char == "\\" and quoted:
+            out.append(char)
+            escaped = True
+        elif char == '"':
+            quoted = not quoted
+            out.append(char)
+        elif char == "#" and not quoted:
+            while index < len(expression) and expression[index] != "\n":
+                index += 1
+            out.append("\n")
+            continue
+        else:
+            out.append(char)
+        index += 1
+    return "".join(out)
+
+
 def _flatten_jq(expression: str) -> str:
     """Stash 的 response-jq 是单行正则字段，多行表达式会被截断。"""
-    return " ".join(part.strip() for part in expression.split("\n") if part.strip())
+    cleaned = _strip_jq_comments(expression)
+    return " ".join(part.strip() for part in cleaned.split("\n") if part.strip())
 
 
 def _loon_response_jq(action: str, fetch: bool = True) -> str:
