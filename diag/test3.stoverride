@@ -1,0 +1,260 @@
+name: 哔哩哔哩增强（Stash）
+desc: 基于 Kelee 的 Loon 插件转换。动态最常访问显示、过滤置顶评论广告、评论区请求优化和空降助手已开启；日志关闭，bsbsb.top 直连。
+author: kokoryh / Kelee plugin conversion
+homepage: https://github.com/kokoryh/Sparkle
+icon: https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Bilibili.png
+category: 去广告
+rules:
+- DOMAIN,bsbsb.top,DIRECT
+- DOMAIN,api.biliapi.com,REJECT
+- DOMAIN,app.biliapi.com,REJECT
+- DOMAIN,api.biliapi.net,REJECT
+- DOMAIN,app.biliapi.net,REJECT
+- AND,((DOMAIN-SUFFIX,chat.bilibili.com),(OR,((DOMAIN-KEYWORD,stun),(DOMAIN-KEYWORD,tracker),(DOMAIN-KEYWORD,p2p)))),REJECT
+- DST-PORT,4480,REJECT-DROP
+- DST-PORT,4483,REJECT-DROP
+- DST-PORT,9102,REJECT-DROP
+http:
+  mitm:
+  - grpc.biliapi.net
+  - app.bilibili.com
+  - api.bilibili.com
+  - api.live.bilibili.com
+  - www.bilibili.com
+  - line3-h5-mobile-api.biligame.com
+  url-rewrite:
+  - ^https:\/\/api\.live\.bilibili\.com\/xlive\/e-commerce-interface\/v1\/ecommerce-user\/get_shopping_info\?
+    - reject-dict
+  - ^https:\/\/line3-h5-mobile-api\.biligame\.com\/game\/live\/large_card_material\?
+    - reject-dict
+  mock:
+  - match: ^https:\/\/app\.bilibili\.com\/x\/v2\/splash\/list\?
+    text: '{"code":0,"message":"OK","ttl":1,"data":{"max_time":0,"min_interval":31536000,"pull_interval":31536000,"keep_ids":[],"show":[],"list":[{}],"splash_request_id":""}}'
+    status-code: 200
+    headers:
+      Content-Type: application/json
+  - match: ^https:\/\/ap[ip]\.bilibili\.com\/x\/(resource\/(top\/activity|patch\/tab(\/v2)?)|v2\/search\/square|vip\/ads\/materials)\?
+    text: '{"code":-404,"message":"-404","ttl":1,"data":null}'
+    status-code: 200
+    headers:
+      Content-Type: application/json
+  - match: ^https:\/\/api\.bilibili\.com\/pgc\/activity\/deliver\/material\/receive\?
+    text: '{"code":0,"data":{"closeType":"close_win","container":[],"showTime":""},"message":"success"}'
+    status-code: 200
+    headers:
+      Content-Type: application/json
+  - match: ^https:\/\/grpc\.biliapi\.net\/bilibili\.app\.interface\.v1\.Teenagers\/ModeStatus$
+    base64: AAAAABMKEQgCEgl0ZWVuYWdlcnMgAioA
+    status-code: 200
+    headers:
+      Content-Type: application/grpc
+      grpc-status: '0'
+  - match: ^https:\/\/grpc\.biliapi\.net\/bilibili\.app\.interface\.v1\.Search\/DefaultWords$
+    base64: AAAAACEaHeaQnOe0ouinhumikeOAgeeVquWJp+aIlnVw5Li7KAE=
+    status-code: 200
+    headers:
+      Content-Type: application/grpc
+      grpc-status: '0'
+  - match: ^https:\/\/grpc\.biliapi\.net\/bilibili\.app\.(view\.v1\.View\/TFInfo|viewunite\.v1\.View\/(PlayPause|ViewEndPage))$
+    base64: AAAAAAA=
+    status-code: 200
+    headers:
+      Content-Type: application/grpc
+      grpc-status: '0'
+  body-rewrite:
+  - ^https:\/\/api\.live\.bilibili\.com\/xlive\/open-interface\/v2\/tracker\/conf\?
+    response-jq .data.domains = ["wss://tracker.chat.bilibili.com"]
+  - ^https:\/\/api\.bilibili\.com\/x\/pd-proxy\/tracker\? response-jq .data[][]? =
+    "stun.chat.bilibili.com:3478"
+  - ^https:\/\/api\.bilibili\.com\/pgc\/view\/v2\/app\/season\? response-jq del(.data.payment)
+  - ^https:\/\/api\.bilibili\.com\/pgc\/page\/channel\? response-jq .data.modules
+    |= map(select(.type != "TIP") | if .type == "BANNER" then .module_data.items |=
+    map(select(.url | startswith("https://www.bilibili.com/blackboard/era/") | not))
+    else . end)
+  - ^https:\/\/app\.bilibili\.com\/x\/resource\/show\/skin\? response-json-del data.common_equip
+  - "^https:\\/\\/app\\.bilibili\\.com\\/x\\/resource\\/show\\/tab\\/v2\\? response-jq\
+    \ .data.tab = [\n    {\n        pos: 1,\n        id: 731,\n        name: \"\\\
+    u76F4\\u64AD\",\n        tab_id: \"\\u76F4\\u64ADtab\",\n        uri: \"bilibili://live/home\"\
+    \n    },\n    {\n        pos: 2,\n        id: 477,\n        name: \"\\u63A8\\\
+    u8350\",\n        tab_id: \"\\u63A8\\u8350tab\",\n        uri: \"bilibili://pegasus/promo\"\
+    ,\n        default_selected: 1\n    },\n    {\n        pos: 3,\n        id: 478,\n\
+    \        name: \"\\u70ED\\u95E8\",\n        tab_id: \"\\u70ED\\u95E8tab\",\n \
+    \       uri: \"bilibili://pegasus/hottopic\"\n    },\n    {\n        pos: 4,\n\
+    \        id: 3502,\n        name: \"\\u52A8\\u753B\",\n        tab_id: \"bangumi\"\
+    ,\n        uri: \"bilibili://pgc/bangumi_v2\"\n    },\n    {\n        pos: 5,\n\
+    \        id: 3503,\n        name: \"\\u5F71\\u89C6\",\n        tab_id: \"film\"\
+    ,\n        uri: \"bilibili://pgc/cinema_v2\"\n    }\n] | .data.top = [\n    {\n\
+    \        pos: 1,\n        id: 176,\n        name: \"\\u6D88\\u606F\",\n      \
+    \  tab_id: \"\\u6D88\\u606FTop\",\n        uri: \"bilibili://link/im_home\",\n\
+    \        icon: \"http://i0.hdslb.com/bfs/archive/d43047538e72c9ed8fd8e4e34415fbe3a4f632cb.png\"\
+    \n    }\n] | .data.bottom = [\n    {\n        pos: 1,\n        id: 177,\n    \
+    \    name: \"\\u9996\\u9875\",\n        tab_id: \"home\",\n        uri: \"bilibili://main/home/\"\
+    ,\n        icon: \"http://i0.hdslb.com/bfs/archive/63d7ee88d471786c1af45af86e8cb7f607edf91b.png\"\
+    ,\n        icon_selected: \"http://i0.hdslb.com/bfs/archive/e5106aa688dc729e7f0eafcbb80317feb54a43bd.png\"\
+    \n    },\n    {\n        pos: 2,\n        id: 179,\n        name: \"\\u52A8\\\
+    u6001\",\n        tab_id: \"dynamic\",\n        uri: \"bilibili://following/home/\"\
+    ,\n        icon: \"http://i0.hdslb.com/bfs/archive/86dfbe5fa32f11a8588b9ae0fccb77d3c27cedf6.png\"\
+    ,\n        icon_selected: \"http://i0.hdslb.com/bfs/archive/25b658e1f6b6da57eecba328556101dbdcb4b53f.png\"\
+    \n    },\n    {\n        pos: 5,\n        id: 181,\n        name: \"\\u6211\\\
+    u7684\",\n        tab_id: \"\\u6211\\u7684Bottom\",\n        uri: \"bilibili://user_center/\"\
+    ,\n        icon: \"http://i0.hdslb.com/bfs/archive/4b0b2c49ffeb4f0c2e6a4cceebeef0aab1c53fe1.png\"\
+    ,\n        icon_selected: \"http://i0.hdslb.com/bfs/archive/a54a8009116cb896e64ef14dcf50e5cade401e00.png\"\
+    \n    }\n]"
+  - ^https:\/\/app\.bilibili\.com\/x\/v2\/splash\/(show|event\/list2)\? response-jq
+    .data |= with_entries(if .key | IN("show", "event_list") then .value = [] else
+    . end)
+  - ^https:\/\/app\.bilibili\.com\/x\/v2\/feed\/index\? response-jq if .data.items
+    then .data.items |= map(select((.banner_item == null) and (.ad_info == null) and
+    (.card_goto == "av") and (.card_type | IN("small_cover_v2", "large_cover_single_v9",
+    "large_cover_v1")))) end
+  - ^https:\/\/app\.bilibili\.com\/x\/v2\/feed\/index\/story\? response-jq if .data.items
+    then .data.items |= map(select((.ad_info == null) and (.card_goto | IN("vertical_ad_av",
+    "vertical_ad_live", "vertical_ad_picture") | not)) | del(.story_cart_icon, .free_flow_toast,
+    .image_infos, .course_info, .game_info)) end
+  - "^https:\\/\\/app\\.bilibili\\.com\\/x\\/v2\\/account\\/mine(\\/ipad)?\\? response-jq\
+    \ .data |= (\n    del(.answer, .live_tip, .vip_section, .vip_section_v2, .modular_vip_section)\
+    \ |\n    .vip_type = 2 |\n    .vip |=\n        if . != null and .status == 0\n\
+    \        then . + { status: 1, type: 2, due_date: 9005270400000, role: 15 }\n\
+    \        else .\n        end\n    |\n    if .sections_v2 then .sections_v2 =\n\
+    \        [\n            {\n                \"items\": [\n                    {\n\
+    \                        \"id\": 396,\n                        \"title\": \"离线缓存\"\
+    ,\n                        \"uri\": \"bilibili://user_center/download\",\n   \
+    \                     \"icon\": \"http://i0.hdslb.com/bfs/archive/5fc84565ab73e716d20cd2f65e0e1de9495d56f8.png\"\
+    ,\n                        \"common_op_item\": {}\n                    },\n  \
+    \                  {\n                        \"id\": 397,\n                 \
+    \       \"title\": \"历史记录\",\n                        \"uri\": \"bilibili://user_center/history\"\
+    ,\n                        \"icon\": \"http://i0.hdslb.com/bfs/archive/8385323c6acde52e9cd52514ae13c8b9481c1a16.png\"\
+    ,\n                        \"common_op_item\": {}\n                    },\n  \
+    \                  {\n                        \"id\": 3072,\n                \
+    \        \"title\": \"我的收藏\",\n                        \"uri\": \"bilibili://user_center/favourite?version=2\"\
+    ,\n                        \"icon\": \"http://i0.hdslb.com/bfs/archive/d79b19d983067a1b91614e830a7100c05204a821.png\"\
+    ,\n                        \"common_op_item\": {}\n                    },\n  \
+    \                  {\n                        \"id\": 2830,\n                \
+    \        \"title\": \"稍后再看\",\n                        \"uri\": \"bilibili://user_center/watch_later_v2\"\
+    ,\n                        \"icon\": \"http://i0.hdslb.com/bfs/archive/63bb768caa02a68cb566a838f6f2415f0d1d02d6.png\"\
+    ,\n                        \"need_login\": 1,\n                        \"common_op_item\"\
+    : {}\n                    }\n                ],\n                \"style\": 1,\n\
+    \                \"button\": {}\n            },\n            {\n             \
+    \   \"title\": \"推荐服务\",\n                \"items\": [\n                    {\n\
+    \                        \"id\": 402,\n                        \"title\": \"个性装扮\"\
+    ,\n                        \"uri\": \"https://www.bilibili.com/h5/mall/home?navhide=1&f_source=shop&from=myservice\"\
+    ,\n                        \"icon\": \"http://i0.hdslb.com/bfs/archive/0bcad10661b50f583969b5a188c12e5f0731628c.png\"\
+    ,\n                        \"common_op_item\": {}\n                    },\n  \
+    \                  {\n                        \"id\": 404,\n                 \
+    \       \"title\": \"我的钱包\",\n                        \"uri\": \"bilibili://bilipay/mine_wallet\"\
+    ,\n                        \"icon\": \"http://i0.hdslb.com/bfs/archive/f416634e361824e74a855332b6ff14e2e7c2e082.png\"\
+    ,\n                        \"common_op_item\": {}\n                    },\n  \
+    \                  {\n                        \"id\": 406,\n                 \
+    \       \"title\": \"我的直播\",\n                        \"uri\": \"bilibili://user_center/live_center\"\
+    ,\n                        \"icon\": \"http://i0.hdslb.com/bfs/archive/1db5791746a0112890b77a0236baf263d71ecb27.png\"\
+    ,\n                        \"common_op_item\": {},\n                    }\n  \
+    \              ],\n                \"style\": 1,\n                \"button\":\
+    \ {}\n            },\n            {\n                \"title\": \"更多服务\",\n  \
+    \              \"items\": [\n                    {\n                        \"\
+    id\": 407,\n                        \"title\": \"联系客服\",\n                   \
+    \     \"uri\": \"bilibili://user_center/feedback\",\n                        \"\
+    icon\": \"http://i0.hdslb.com/bfs/archive/7ca840cf1d887a45ee1ef441ab57845bf26ef5fa.png\"\
+    ,\n                        \"common_op_item\": {}\n                    },\n  \
+    \                  {\n                        \"id\": 410,\n                 \
+    \       \"title\": \"设置\",\n                        \"uri\": \"bilibili://user_center/setting\"\
+    ,\n                        \"icon\": \"http://i0.hdslb.com/bfs/archive/e932404f2ee62e075a772920019e9fbdb4b5656a.png\"\
+    ,\n                        \"common_op_item\": {}\n                    }\n   \
+    \             ],\n                \"style\": 2,\n                \"button\": {}\n\
+    \            }\n        ]\n    end |\n    if .ipad_sections then .ipad_sections\
+    \ =\n        [\n            {\n                \"id\": 747,\n                \"\
+    title\": \"离线缓存\",\n                \"uri\": \"bilibili://user_center/download\"\
+    ,\n                \"icon\": \"http://i0.hdslb.com/bfs/feed-admin/9bd72251f7366c491cfe78818d453455473a9678.png\"\
+    ,\n                \"mng_resource\": { \"icon_id\": 0, \"icon\": \"\" }\n    \
+    \        },\n            {\n                \"id\": 748,\n                \"title\"\
+    : \"历史记录\",\n                \"uri\": \"bilibili://user_center/history\",\n  \
+    \              \"icon\": \"http://i0.hdslb.com/bfs/feed-admin/83862e10685f34e16a10cfe1f89dbd7b2884d272.png\"\
+    ,\n                \"mng_resource\": { \"icon_id\": 0, \"icon\": \"\" }\n    \
+    \        },\n            {\n                \"id\": 749,\n                \"title\"\
+    : \"我的收藏\",\n                \"uri\": \"bilibili://user_center/favourite\",\n\
+    \                \"icon\": \"http://i0.hdslb.com/bfs/feed-admin/6ae7eff6af627590fc4ed80c905e9e0a6f0e8188.png\"\
+    ,\n                \"mng_resource\": { \"icon_id\": 0, \"icon\": \"\" }\n    \
+    \        },\n            {\n                \"id\": 750,\n                \"title\"\
+    : \"稍后再看\",\n                \"uri\": \"bilibili://user_center/watch_later\",\n\
+    \                \"icon\": \"http://i0.hdslb.com/bfs/feed-admin/928ba9f559b02129e51993efc8afe95014edec94.png\"\
+    ,\n                \"mng_resource\": { \"icon_id\": 0, \"icon\": \"\" }\n    \
+    \        }\n        ]\n    end |\n    if .ipad_upper_sections then .ipad_upper_sections\
+    \ =\n        [\n            {\n                \"id\": 752,\n                \"\
+    title\": \"创作首页\",\n                \"uri\": \"/uper/homevc\",\n             \
+    \   \"icon\": \"http://i0.hdslb.com/bfs/feed-admin/d20dfed3b403c895506b1c92ecd5874abb700c01.png\"\
+    ,\n                \"mng_resource\": { \"icon_id\": 0, \"icon\": \"\" }\n    \
+    \        }\n        ]\n    end |\n    if .ipad_recommend_sections then .ipad_recommend_sections\
+    \ =\n        [\n            {\n                \"id\": 755,\n                \"\
+    title\": \"我的关注\",\n                \"uri\": \"bilibili://user_center/myfollows\"\
+    ,\n                \"icon\": \"http://i0.hdslb.com/bfs/feed-admin/fdd7f676030c6996d36763a078442a210fc5a8c0.png\"\
+    ,\n                \"mng_resource\": { \"icon_id\": 0, \"icon\": \"\" }\n    \
+    \        },\n            {\n                \"id\": 756,\n                \"title\"\
+    : \"我的消息\",\n                \"uri\": \"bilibili://link/im_home\",\n         \
+    \       \"icon\": \"http://i0.hdslb.com/bfs/feed-admin/e1471740130a08a48b02a4ab29ed9d5f2281e3bf.png\"\
+    ,\n                \"mng_resource\": { \"icon_id\": 0, \"icon\": \"\" }\n    \
+    \        }\n        ]\n    end |\n    if .ipad_more_sections then .ipad_more_sections\
+    \ =\n        [\n            {\n                \"id\": 763,\n                \"\
+    title\": \"我的客服\",\n                \"uri\": \"bilibili://user_center/feedback\"\
+    ,\n                \"icon\": \"http://i0.hdslb.com/bfs/feed-admin/7801a6180fb67cf5f8ee05a66a4668e49fb38788.png\"\
+    ,\n                \"mng_resource\": { \"icon_id\": 0, \"icon\": \"\" }\n    \
+    \        },\n            {\n                \"id\": 764,\n                \"title\"\
+    : \"设置\",\n                \"uri\": \"bilibili://user_center/setting\",\n    \
+    \            \"icon\": \"http://i0.hdslb.com/bfs/feed-admin/34e8faea00b3dd78977266b58d77398b0ac9410b.png\"\
+    ,\n                \"mng_resource\": { \"icon_id\": 0, \"icon\": \"\" }\n    \
+    \        }\n        ]\n    end\n)"
+  - '^https:\/\/app\.bilibili\.com\/x\/v2\/account\/myinfo\? response-jq .data.vip
+    |= if . != null and .status == 0 then . + { status: 1, type: 2, due_date: 9005270400000,
+    role: 15 } else . end'
+  - ^https://app\.bilibili\.com/x/resource/show/tab/v2\? response-jq if .data.bottom
+    then .data.bottom |= map(select((.id != 670) and (.id != 3609) and (.name != "发布")
+    and (.name != "会员购") and (.tab_id != "publish") and (.tab_id != "会员购Bottom") and
+    (.uri != "bilibili://mall/home"))) else . end
+  script:
+  - match: ^https:\/\/(grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.community\.service\.dm\.v1\.DM\/DmSegMobile$
+    name: bilibili-protobuf-request
+    type: request
+    require-body: true
+    binary-mode: true
+    max-size: 10485760
+    timeout: 10
+    argument: '{"logLevel":"off"}'
+  - match: ^https:\/\/(grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.(app\.viewunite\.v1\.View\/View|main\.community\.reply\.v1\.Reply\/MainList)$
+    name: bilibili-protobuf-request
+    type: request
+    require-body: true
+    binary-mode: true
+    max-size: 10485760
+    timeout: 10
+    argument: '{"purifyComment":true,"logLevel":"off"}'
+  - match: ^https:\/\/api\.live\.bilibili\.com\/xlive\/(app-interface\/v2\/index\/feed|app-room\/v1\/index\/getInfoBy(Room|User))\?
+    name: bilibili-json
+    type: response
+    require-body: true
+    timeout: 10
+    argument: '{"logLevel":"off"}'
+  - match: ^https:\/\/www\.bilibili\.com\/blackboard\/era\/.+\.html\?
+    name: bilibili-webpage
+    type: response
+    require-body: true
+    timeout: 10
+    argument: '{"logLevel":"off"}'
+  - match: ^https:\/\/(grpc\.biliapi\.net|app\.bilibili\.com)\/bilibili\.(app\.(show\.v1\.Popular\/Index|dynamic\.v2\.Dynamic\/DynAll|view(unite)?\.v1\.View\/(View|ViewProgress|RelatesFeed|AIRelateAsync)|playurl\.v1\.PlayURL\/PlayView|playerunite\.v1\.Player\/PlayViewUnite)|polymer\.app\.search\.v1\.Search\/SearchAll|community\.service\.dm\.v1\.DM\/DmView|main\.community\.reply\.v1\.Reply\/MainList|pgc\.gateway\.player\.v2\.PlayURL\/PlayView)$
+    name: bilibili-protobuf-response
+    type: response
+    require-body: true
+    binary-mode: true
+    max-size: 10485760
+    timeout: 10
+    argument: '{"displayUpList":"show","purifyComment":true,"sponsorBlock":true,"logLevel":"off"}'
+script-providers:
+  bilibili-json:
+    interval: 86400
+    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Bilibili/Bilibili_json_kokoryh.js
+  bilibili-protobuf-request:
+    interval: 86400
+    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Bilibili/Bilibili_proto_request_kokoryh.js
+  bilibili-protobuf-response:
+    interval: 86400
+    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Bilibili/Bilibili_proto_response_kokoryh.js
+  bilibili-webpage:
+    interval: 86400
+    url: https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/webpage.bilibili.js

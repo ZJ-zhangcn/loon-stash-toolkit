@@ -257,6 +257,10 @@ hostname = api.example.com
                     # YAML folded scalars may preserve extra indentation as newlines.
                     actual = [" ".join(value.split()) for value in actual]
                     expected = [" ".join(value.split()) for value in expected]
+                if field in ("header_rewrite", "body_rewrite"):
+                    # 同一文件内 header 操作可能落在两个 rewrite 段，跨文件合并后顺序不可依赖
+                    self.assertEqual(sorted(actual), sorted(expected))
+                    continue
                 self.assertEqual(actual, expected)
 
         # provider 名在各文件间可能重名（同一脚本被多条规则引用），按 URL 校验内容完整
