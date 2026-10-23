@@ -278,21 +278,9 @@ http:
       type: "response"
       require-body: true
 script-providers:
-# payload 为脚本快照，kelee.one 取不到脚本时的兜底
   "loon_wexinminiprograms_remove_ads_01":
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/WexinMiniPrograms/kff/kff.js"
     interval: 86400
-    payload: |-
-     let obj = JSON.parse($response.body);
-     obj.data.config = JSON.stringify(JSON.parse(obj.data.config).filter(item => !item.id.includes("13502ede-f5fd-4d5c-90f5-f2454a30fda0")));
-     obj.data.config = JSON.stringify(JSON.parse(obj.data.config).filter(item => !item.id.includes("c1caaf62-e91d-4040-b533-dab39c0fec13")));
-     obj.data.config = JSON.stringify(JSON.parse(obj.data.config).filter(item => !item.id.includes("cc9d17ec-3ac5-494b-b82e-8d3c72c243d4")));
-     obj.data.config = JSON.stringify(JSON.parse(obj.data.config).filter(item => !item.id.includes("7bef8fe9-0daf-46b3-a2b0-dd9fba49423f")));
-     obj.data.config = JSON.stringify(JSON.parse(obj.data.config).filter(item => !item.id.includes("ff7e1263-d8d2-4f09-9947-d8c43c77bb10")));
-     obj.data.config = JSON.stringify(JSON.parse(obj.data.config).filter(item => !item.id.includes("874197b4-fe93-4a80-a555-8df1bc7e8211")));
-     obj.data.config = JSON.stringify(JSON.parse(obj.data.config).filter(item => !item.id.includes("0ba6a615-b7e9-48aa-afe7-329635385f2c")));
-     obj.data.config = JSON.stringify(JSON.parse(obj.data.config).filter(item => !item.id.includes("a11b0e7d-a162-4802-ac71-21d98e8adddf")));
-     $done({body: JSON.stringify(obj)});
     payload: |-
       let obj = JSON.parse($response.body);
       obj.data.config = JSON.stringify(JSON.parse(obj.data.config).filter(item => !item.id.includes("13502ede-f5fd-4d5c-90f5-f2454a30fda0")));
@@ -308,29 +296,12 @@ script-providers:
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/WexinMiniPrograms/ems/ems.js"
     interval: 86400
     payload: |-
-     let obj = JSON.parse($response.body);
-     obj.info.moduleJson = JSON.stringify(JSON.parse(obj.info.moduleJson).filter(item => !item.moduleName.includes("广告")));
-     $done({body: JSON.stringify(obj)});
-    payload: |-
       let obj = JSON.parse($response.body);
       obj.info.moduleJson = JSON.stringify(JSON.parse(obj.info.moduleJson).filter(item => !item.moduleName.includes("广告")));
       $done({body: JSON.stringify(obj)});
   "loon_wexinminiprograms_remove_ads_03":
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/WexinMiniPrograms/xiaotucc/xiaotucc.js"
     interval: 86400
-    payload: |-
-     if(-1!=$request.url.indexOf("main_page/index/getActivity")){
-         let obj=JSON.parse($response.body);
-         delete obj.data.p3;
-         $done({body: JSON.stringify(obj)});
-        }
-        else if(-1!=$request.url.indexOf("mall/main")){
-         let obj=JSON.parse($response.body);
-         delete obj.data;
-         $done({body: JSON.stringify(obj)});
-        }
-        else $done($response);
-     \x20\x20\x20
     payload: |-
       if(-1!=$request.url.indexOf("main_page/index/getActivity")){
           let obj=JSON.parse($response.body);
@@ -348,21 +319,12 @@ script-providers:
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/WexinMiniPrograms/FamilyMart/FamilyMart.js"
     interval: 86400
     payload: |-
-     let obj=JSON.parse($response.body);
-     delete obj.data.topBanner ;
-     $done({body: JSON.stringify(obj)});
-    payload: |-
       let obj=JSON.parse($response.body);
       delete obj.data.topBanner ;
       $done({body: JSON.stringify(obj)});
   "loon_wexinminiprograms_remove_ads_05":
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/WexinMiniPrograms/lawson/lawson.js"
     interval: 86400
-    payload: |-
-     let obj=JSON.parse($response.body);
-     delete obj.data.homeButtonList ;
-     delete obj.data.dysmorphismPictureList ;
-     $done({body: JSON.stringify(obj)});
     payload: |-
       let obj=JSON.parse($response.body);
       delete obj.data.homeButtonList ;
@@ -371,16 +333,6 @@ script-providers:
   "loon_wexinminiprograms_remove_ads_06":
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/WexinMiniPrograms/chayanyuese/chayanyuese_remove_ads.js"
     interval: 86400
-    payload: |-
-     let obj=JSON.parse($response.body);
-     delete obj.data.INDEX_SLOT_01;
-     delete obj.data.INDEX_SLOT_02;
-     obj.data?.INDEX_TOP_BANNER?.contents?.forEach(item => {
-       delete item.bubble;\x20
-       delete item.figure;\x20
-       item.value = "https://kelee.one/Resource/Script/WexinMiniPrograms/chayanyuese/cyys1.jpg";
-     });
-     $done({body: JSON.stringify(obj)});
     payload: |-
       let obj=JSON.parse($response.body);
       delete obj.data.INDEX_SLOT_01;
@@ -395,11 +347,6 @@ script-providers:
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/WexinMiniPrograms/coco/coco.js"
     interval: 86400
     payload: |-
-     let obj=JSON.parse($response.body);
-     delete obj.data.top_background_url ;
-     delete obj.data.bottom_banner_list ;
-     $done({body: JSON.stringify(obj)});
-    payload: |-
       let obj=JSON.parse($response.body);
       delete obj.data.top_background_url ;
       delete obj.data.bottom_banner_list ;
@@ -408,10 +355,6 @@ script-providers:
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/WexinMiniPrograms/qingju/qingju.js"
     interval: 86400
     payload: |-
-     let obj=JSON.parse($response.body);
-     delete obj.data.bannerInfoConfig ;
-     $done({body: JSON.stringify(obj)});
-    payload: |-
       let obj=JSON.parse($response.body);
       delete obj.data.bannerInfoConfig ;
       $done({body: JSON.stringify(obj)});
@@ -419,32 +362,12 @@ script-providers:
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/WexinMiniPrograms/alittle-tea/alittle-tea.js"
     interval: 86400
     payload: |-
-     let obj=JSON.parse($response.body);
-     delete obj.data;
-     $done({body: JSON.stringify(obj)});
-    payload: |-
       let obj=JSON.parse($response.body);
       delete obj.data;
       $done({body: JSON.stringify(obj)});
   "loon_wexinminiprograms_remove_ads_10":
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/WexinMiniPrograms/M_Stand/M_Stand.js"
     interval: 86400
-    payload: |-
-     let obj=JSON.parse($response.body);
-     delete obj.data.homeNewsAdv.jumpValue ;
-     delete obj.data.homeDineInAdv ;
-     delete obj.data.homePickupAdv ;
-     delete obj.data.nearbyShopInfo ;
-     delete obj.data.homeEventThemesAdv ;
-     delete obj.data.eventThemes ;
-     delete obj.data.homeRootAdv ;
-     delete obj.data.homeTopAdv ;
-     delete obj.data.homeDialogAdv ;
-     delete obj.data.homeBannerAdv ;
-     delete obj.data.homeCouponAdv ;
-     delete obj.data.homeCompanyAdv ;
-     delete obj.data.homeDeliveryAdv ;
-     $done({body: JSON.stringify(obj)});
     payload: |-
       let obj=JSON.parse($response.body);
       delete obj.data.homeNewsAdv.jumpValue ;
@@ -465,20 +388,12 @@ script-providers:
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/WexinMiniPrograms/T3/T3.js"
     interval: 86400
     payload: |-
-     let obj = JSON.parse($response.body);
-     delete obj.data;
-     $done({body: JSON.stringify(obj)});
-    payload: |-
       let obj = JSON.parse($response.body);
       delete obj.data;
       $done({body: JSON.stringify(obj)});
   "loon_wexinminiprograms_remove_ads_12":
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/WexinMiniPrograms/ming/ming.js"
     interval: 86400
-    payload: |-
-     let obj=JSON.parse($response.body);
-     obj.data=[];
-     $done({body: JSON.stringify(obj)});
     payload: |-
       let obj=JSON.parse($response.body);
       obj.data=[];

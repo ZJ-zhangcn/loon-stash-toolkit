@@ -20,7 +20,9 @@ MARKER = "  # payload 为脚本快照，kelee.one 取不到脚本时的兜底\n"
 PROVIDER = re.compile(
     r'^(?P<indent> +)(?P<name>"?[\w\-\. ]+"?):\n'
     r'(?P=indent)  url: "(?P<url>https://[^"]+\.js)"\n'
-    r'(?P=indent)  interval: (?P<interval>\d+)\n',
+    r'(?P=indent)  interval: (?P<interval>\d+)\n'
+    # 已有快照一并吃掉，重写而不是追加，保证重复运行幂等
+    r'(?:(?P=indent)  payload: \|-\n(?:[ ]{6,}[^\n]*\n|\n)*)?',
     re.M,
 )
 
@@ -44,43 +46,44 @@ def fetch(url: str) -> str | None:
 
 
 def inline(path: Path, cache: dict[str, str | None]) -> int:
+    """整段重写 script-providers，避免与 sync_sources 的继承逻辑叠加出重复快照。"""
     text = path.read_text(encoding="utf-8")
-    changed = 0
+    head, marker, tail = text.partition("script-providers:\n")
+    if not marker:
+        return 0
 
-    def replace(match: re.Match[str]) -> str:
-        nonlocal changed
-        url = match.group("url")
+    entries = re.split(r"(?m)^(?=  \"?[\w.\- ]+\"?:$)", tail)
+    changed = 0
+    rebuilt: list[str] = []
+    for entry in entries:
+        m = re.match(
+            r'^(  \"?[\w.\- ]+\"?:\n)    url: "(?P<url>https://[^"]+\.js)"\n    interval: (?P<interval>\d+)\n',
+            entry,
+        )
+        if not m:
+            rebuilt.append(entry)
+            continue
+        url = m.group("url")
         if url not in cache:
             cache[url] = fetch(url)
         payload = cache[url]
+        block = entry[: m.end()]
         if payload is None:
-            return match.group(0)
-        indent = match.group("indent") + "  "
+            rebuilt.append(block)
+            continue
         changed += 1
-        # \x08 等控制字符 YAML 不收，转义成 JS 等价的 \b；
-        # 行尾空白在块标量里会被裁掉且 JS 语义等价，一并转义以避免尾部丢失
-        body = (
-            payload.replace("\t", "\\t")
-            .replace("\b", "\\b")
-        )
+        body = payload.replace("\t", "\\t").replace("\b", "\\b")
         body = "\n".join(
             line.rstrip(" ") + "\\x20" * (len(line) - len(line.rstrip(" ")))
             if line.endswith(" ") else line
             for line in body.split("\n")
         )
-        if not body.endswith("\n"):
-            body += "\n"
-        # YAML block scalar: n 个空格的 payload 用 n+1 缩进的最长空白行保留，避免尾随空行被吃掉
-        return match.group(0) + f"{indent}payload: |-\n" + "".join(
-            f"{indent} {line}\n" for line in body.splitlines()
+        content = "".join(
+            f"      {line}\n" if line.strip() else "\n" for line in body.splitlines()
         )
+        rebuilt.append(block + "    payload: |-\n" + content)
 
-    new_text = PROVIDER.sub(replace, text)
-    new_text = re.sub(r"(?m)^" + re.escape(MARKER), "", new_text)
-    if changed:
-        new_text = re.sub(
-            r"(?m)^(script-providers:\n)", lambda m: m.group(1) + MARKER.lstrip(), new_text, count=1
-        )
+    new_text = head + marker + "".join(rebuilt)
     if new_text != text:
         path.write_text(new_text, encoding="utf-8")
     return changed

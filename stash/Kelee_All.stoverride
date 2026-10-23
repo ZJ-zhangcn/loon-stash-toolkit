@@ -2015,6 +2015,16 @@ script-providers:
       }
 
       $done({ body });
+        default:
+          $done({});
+      }
+
+      $done({ body });
+        default:
+          $done({});
+      }
+
+      $done({ body });
   loon_taobao_remove_ads_02:
     url: https://git.repcz.link/kelee.one/Resource/JavaScript/Taobao/Taobao_remove_ads.js
     interval: 86400
@@ -2113,6 +2123,16 @@ script-providers:
             console.log(`淘宝-开屏活动, 出现异常: ` + err);
           }
           break;
+        default:
+          $done({});
+      }
+
+      $done({ body });
+        default:
+          $done({});
+      }
+
+      $done({ body });
         default:
           $done({});
       }
@@ -7779,4 +7799,4 @@ script-providers:
   bilibili-webpage:
     url: https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/webpage.bilibili.js
     interval: 86400
-date: '2026-10-23 22:39:17'
+date: '2026-10-23 22:51:15'
