@@ -27,6 +27,11 @@ SCRIPT_TYPES = {"request", "response"}
 SCRIPT_ENGINES = {"auto", "webkit", "jsc"}
 PROVIDER_FIELDS = {"url", "interval", "headers", "payload", "path"}
 
+# Stash 解析超长 rewrite 单行会失败，并让整层覆写的脚本全部失效。
+# 实测 7.2 KB 正常、27 KB 必坏。转换器按 8 KB 切片留余量；lint 上限放到 9 KB，
+# 因为 Amap 有个 8 KB 的复杂 jq 程序（非 del() 列表，拆分会改变语义）在线上正常。
+MAX_REWRITE_CHARS = 9000
+
 
 def _action_of(value: str, legal: set[str], prefixes: tuple[str, ...]) -> str | None:
     """返回这条 rewrite 里第一个匹配 legal 的合法动作；没有则 None。"""
@@ -77,6 +82,11 @@ def check(path: str) -> list[str]:
             if not isinstance(value, str):
                 errors.append(f"http.{section}[{index}] 不是字符串")
                 continue
+            if len(value) > MAX_REWRITE_CHARS:
+                errors.append(
+                    f"http.{section}[{index}] {len(value)} 字符，超过 {MAX_REWRITE_CHARS} "
+                    "上限（Stash 会解析失败并连累所有覆写的脚本；需拆分为多条）"
+                )
             if section == "url-rewrite":
                 tail = value.rsplit(None, 1)[-1]
                 if tail not in URL_ACTIONS:

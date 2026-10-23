@@ -532,6 +532,74 @@ def _loon_response_jq(action: str, fetch: bool = True) -> str:
     raise ValueError(f"unsupported Loon response rewrite: {action}")
 
 
+def _split_top_level_commas(text: str) -> list[str]:
+    """按顶层逗号切分 jq 参数，保留引号内的逗号。"""
+    parts: list[str] = []
+    buffer: list[str] = []
+    quoted = escaped = False
+    for char in text:
+        if escaped:
+            buffer.append(char)
+            escaped = False
+            continue
+        if char == "\\" and quoted:
+            buffer.append(char)
+            escaped = True
+            continue
+        if char == '"':
+            quoted = not quoted
+        elif char == "," and not quoted:
+            parts.append("".join(buffer).strip())
+            buffer = []
+            continue
+        buffer.append(char)
+    tail = "".join(buffer).strip()
+    if tail:
+        parts.append(tail)
+    return parts
+
+
+# Stash 解析超长 rewrite 单行会失败，并让整层覆写的脚本全部失效。
+# 实测 7.2 KB 的单行正常，27 KB 的单行必然出问题；取 8 KB 作硬上限。
+BODY_REWRITE_MAX_CHARS = 8000
+
+
+def _split_oversized_del(entry: str, limit: int = BODY_REWRITE_MAX_CHARS) -> list[str]:
+    """把超长的 del(a, b, c) 拆成多条等价的 body-rewrite。
+
+    只处理扁平的 del() 路径列表；含嵌套路径或非 del 的 jq 程序保持原样，
+    因为拆分可能改变语义。
+    """
+    if len(entry) <= limit:
+        return [entry]
+    match = re.fullmatch(r"(?P<prefix>\S+) response-jq del\((?P<paths>.+)\)", entry, re.S)
+    if not match:
+        return [entry]
+    prefix = match["prefix"]
+    paths = _split_top_level_commas(match["paths"])
+    if len(paths) < 2:
+        return [entry]
+    # 嵌套路径拆分后可能丢掉父级删除的副作用，保持原样
+    flat = {path for path in paths}
+    if any(path.startswith(other + ".") for path in paths for other in flat if other != path):
+        return [entry]
+
+    overhead = len(prefix) + len(" response-jq del()")
+    chunks: list[str] = []
+    current: list[str] = []
+    size = overhead
+    for path in paths:
+        added = len(path) + 2  # ", "
+        if current and size + added > limit:
+            chunks.append(f"{prefix} response-jq del({', '.join(current)})")
+            current, size = [], overhead
+        current.append(path)
+        size += added
+    if current:
+        chunks.append(f"{prefix} response-jq del({', '.join(current)})")
+    return chunks
+
+
 def _split_loon_call(text: str) -> list[str]:
     """按顶层逗号切分 Loon 调用参数，保留双引号内的逗号与转义。"""
     parts: list[str] = []
@@ -889,7 +957,14 @@ def to_stash(document: Document, stem: str = "plugin") -> str:
             ("mitm", document.mitm),
             ("url-rewrite", document.url_rewrite),
             ("header-rewrite", document.header_rewrite),
-            ("body-rewrite", document.body_rewrite),
+            (
+                "body-rewrite",
+                [
+                    chunk
+                    for entry in document.body_rewrite
+                    for chunk in _split_oversized_del(entry)
+                ],
+            ),
         ):
             if values:
                 output.append(f"  {key}:")

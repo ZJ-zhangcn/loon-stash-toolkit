@@ -9,7 +9,13 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from tools.convert import convert_text, parse_loon, parse_stash  # noqa: E402
+from tools.convert import (  # noqa: E402
+    BODY_REWRITE_MAX_CHARS,
+    _split_oversized_del,
+    convert_text,
+    parse_loon,
+    parse_stash,
+)
 
 
 class ConversionTests(unittest.TestCase):
@@ -372,6 +378,41 @@ hostname = api.example.com
         document = parse_stash(text)
         self.assertEqual(document.script_providers["s1"]["payload"], body.rstrip("\n"))
         self.assertEqual(document.script_providers["s1"]["interval"], "86400")
+
+
+class OversizedBodyRewriteTests(unittest.TestCase):
+    """超长 del() 必须切分：Stash 遇到 27 KB 单行会让整层覆写脚本全部失效。"""
+
+    def test_splits_long_del_and_keeps_every_path(self) -> None:
+        paths = [f".result.key_{index:04d}_padding" for index in range(800)]
+        entry = f"^https://example\\.com\\/api\\? response-jq del({', '.join(paths)})"
+        self.assertGreater(len(entry), BODY_REWRITE_MAX_CHARS)
+
+        chunks = _split_oversized_del(entry)
+
+        self.assertGreater(len(chunks), 1)
+        for chunk in chunks:
+            self.assertLessEqual(len(chunk), BODY_REWRITE_MAX_CHARS)
+            self.assertTrue(chunk.startswith("^https://example\\.com\\/api\\? response-jq del("))
+        recovered = [
+            path.strip()
+            for chunk in chunks
+            for path in chunk.split("response-jq del(", 1)[1][:-1].split(", ")
+        ]
+        self.assertEqual(recovered, paths)
+
+    def test_leaves_nested_paths_alone(self) -> None:
+        # 同时删父级和子级时拆分可能改变语义，必须整体保留
+        paths = [".result"] + [f".result.child_{index:04d}_pad" for index in range(800)]
+        entry = f"^https://example\\.com\\/ response-jq del({', '.join(paths)})"
+        self.assertGreater(len(entry), BODY_REWRITE_MAX_CHARS)
+        self.assertEqual(_split_oversized_del(entry), [entry])
+
+    def test_leaves_short_and_non_del_programs_alone(self) -> None:
+        short = "^https://example\\.com\\/ response-jq del(.a, .b)"
+        self.assertEqual(_split_oversized_del(short), [short])
+        long_other = "^https://example\\.com\\/ response-jq " + ".a = 1 | " * 900
+        self.assertEqual(_split_oversized_del(long_other), [long_other])
 
 
 if __name__ == "__main__":
