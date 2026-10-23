@@ -68,6 +68,7 @@ class Document:
     header_rewrite: list[str] = field(default_factory=list)
     body_rewrite: list[str] = field(default_factory=list)
     scripts: list[ScriptRule] = field(default_factory=list)
+    mocks: list[dict[str, Any]] = field(default_factory=list)
     script_providers: dict[str, dict[str, Any]] = field(default_factory=dict)
     warnings: list[str] = field(default_factory=list)
 
@@ -271,10 +272,9 @@ def _consume_http(
         if key == "mock":
             index, items = _consume_mapping_items(lines, index + 1, 4)
             for item in items:
-                match = item.get("match", "<unknown>")
-                document.warnings.append(
-                    f"Stash mock is not directly representable in Loon: {match}"
-                )
+                if "match" not in item:
+                    raise ValueError("Stash mock item is missing match")
+                document.mocks.append(item)
             continue
 
         document.warnings.append(f"ignored unsupported http section: {key}")
@@ -557,7 +557,7 @@ def _split_loon_call(text: str) -> list[str]:
     ]
 
 
-def _parse_loon_rewrite(line: str) -> tuple[str, str]:
+def _parse_loon_rewrite(line: str) -> tuple[str, Any]:
     condition = _parse_loon_url_condition(line)
     if condition:
         directive, pattern, action, match_name = condition
@@ -588,17 +588,20 @@ def _parse_loon_rewrite(line: str) -> tuple[str, str]:
             payload = arguments[1]
             if len(arguments) >= 3 and arguments[2] != "200":
                 raise ValueError(f"unsupported Loon mock status: {action}")
-            if len(arguments) >= 4 and arguments[3].lower() == "true":
-                return "body_rewrite", f"{pattern} response-replace-regex (?s)^.*$ {payload}"
-            try:
-                body = json.loads(payload) if payload else ""
-            except json.JSONDecodeError as exc:
-                raise ValueError(f"unsupported Loon mock body: {action}") from exc
-            if body == "":
-                value = '""'
+            raw = len(arguments) >= 4 and arguments[3].lower() == "true"
+            mock: dict[str, Any] = {"match": pattern, "status-code": 200}
+            if raw:
+                # Loon 的二进制 mock 已经是 base64；Stash 用 base64 字段承载原始字节
+                mock["base64"] = payload
+                mock["headers"] = {"Content-Type": "application/grpc", "grpc-status": "0"}
             else:
-                value = _quote(json.dumps(body, ensure_ascii=False, separators=(",", ":")))
-            return "body_rewrite", f"{pattern} response-replace-regex (?s)^.*$ {value}"
+                try:
+                    parsed = json.loads(payload) if payload else ""
+                except json.JSONDecodeError as exc:
+                    raise ValueError(f"unsupported Loon mock body: {action}") from exc
+                mock["text"] = "" if parsed == "" else json.dumps(parsed, ensure_ascii=False, separators=(",", ":"))
+                mock["headers"] = {"Content-Type": "application/json"}
+            return "mock", mock
         header_add = re.fullmatch(r'response[.]header[.]add\("([^"]+)",\s*"([^"]*)"\)', action)
         if header_add:
             return (
@@ -781,7 +784,10 @@ def parse_loon(
         if section == "[REWRITE]":
             try:
                 key, value = _parse_loon_rewrite(line)
-                getattr(document, key).append(value)
+                if key == "mock":
+                    document.mocks.append(value)
+                else:
+                    getattr(document, key).append(value)
             except (ValueError, json.JSONDecodeError) as exc:
                 document.warnings.append(str(exc))
             continue
@@ -857,6 +863,7 @@ def to_stash(document: Document, stem: str = "plugin") -> str:
             document.header_rewrite,
             document.body_rewrite,
             valid_scripts,
+            document.mocks,
         )
     )
     if has_http:
@@ -870,6 +877,21 @@ def to_stash(document: Document, stem: str = "plugin") -> str:
             if values:
                 output.append(f"  {key}:")
                 output.extend(f"    - {_quote(value)}" for value in values)
+
+        if document.mocks:
+            output.append("  mock:")
+            for item in document.mocks:
+                output.append(f"    - match: {_quote(str(item['match']))}")
+                if "base64" in item:
+                    output.append(f"      base64: {_quote(str(item['base64']))}")
+                else:
+                    output.append(f"      text: {_quote(str(item.get('text', '')))}")
+                output.append(f"      status-code: {int(item.get('status-code', 200))}")
+                headers = item.get("headers")
+                if isinstance(headers, dict):
+                    output.append("      headers:")
+                    for name, value in headers.items():
+                        output.append(f"        {name}: {_quote(str(value))}")
 
         providers: dict[str, dict[str, Any]] = {}
         if valid_scripts:

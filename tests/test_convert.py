@@ -47,10 +47,11 @@ response if ${url} ~= /^https:\/\/api\.example\/ads$/i then response.body.mock("
         converted = convert_text("loon-to-stash", source, "mock", warnings)
         document = parse_stash(converted)
 
-        self.assertEqual(
-            document.body_rewrite,
-            [r'(?i)^https://api\.example/ads$ response-replace-regex (?s)^.*$ ""'],
-        )
+        self.assertEqual(len(document.mocks), 1)
+        self.assertEqual(document.mocks[0]["match"], r"(?i)^https://api\.example/ads$")
+        self.assertEqual(document.mocks[0]["text"], "")
+        self.assertEqual(int(document.mocks[0]["status-code"]), 200)
+        self.assertEqual(document.body_rewrite, [])
         self.assertEqual(warnings, [])
 
     def test_modern_loon_rewrites_convert_to_stash_reject_and_jq_rules(self) -> None:
@@ -268,15 +269,11 @@ hostname = api.example.com
             aggregate.warnings,
             [warning for doc in source_docs for warning in doc.warnings],
         )
+        aggregate_mocks = {(m["match"], m.get("text"), m.get("base64")) for m in aggregate.mocks}
         for path in paths:
-            for line in path.read_text(encoding="utf-8").splitlines():
-                if line.lstrip().startswith(("text:", "base64:")):
-                    _, raw_value = line.strip().split(":", 1)
-                    value = raw_value.strip().strip("'\"")
-                    if value:
-                        self.assertIn(value, aggregate_text)
-                    else:
-                        self.assertRegex(aggregate_text, r"(?m)^\s+text:\s*(?:\"\"|'')$")
+            for mock in parse_stash(path.read_text(encoding="utf-8")).mocks:
+                key = (mock["match"], mock.get("text"), mock.get("base64"))
+                self.assertIn(key, aggregate_mocks)
 
     def test_youtube_override_uses_previous_argument_values(self) -> None:
         document = parse_stash(

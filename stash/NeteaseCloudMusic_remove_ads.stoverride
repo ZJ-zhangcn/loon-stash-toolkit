@@ -22,9 +22,17 @@ http:
     - "(?i)^https?://interface\\d?\\.music\\.163\\.com/eapi/(ios/version|mlivestream/entrance/playpage/|link/position/show/strategy|link/scene/show/resource|v1/content/exposure/comment/banner/) - reject-dict"
     - "(?i)^https?://interface\\d?\\.music\\.163\\.com/w?eapi/(activity/bonus/playpage/time/query|resource-exposure/|search/(chart/|rcmd/keyword/|specialkeyword/)) - reject-dict"
     - "(?i)^https://interface\\d\\.music\\.163\\.com/eapi/my/podcast/tab/recommend - reject-dict"
-  body-rewrite:
-    - "(?i)^https?://interface\\d?\\.music\\.163\\.com/e?api/(ocpc/)?ad/ response-replace-regex (?s)^.*$ \"\""
-    - "(?i)^https?://interface\\d?\\.music\\.163.com/w?e?api/search/default response-replace-regex (?s)^.*$ \"\""
+  mock:
+    - match: "(?i)^https?://interface\\d?\\.music\\.163\\.com/e?api/(ocpc/)?ad/"
+      text: ""
+      status-code: 200
+      headers:
+        Content-Type: "application/json"
+    - match: "(?i)^https?://interface\\d?\\.music\\.163.com/w?e?api/search/default"
+      text: ""
+      status-code: 200
+      headers:
+        Content-Type: "application/json"
   script:
     - match: "(?i)^https?://interface\\d?\\.music\\.163\\.com/eapi/(batch|v2/resource/comment/floor/get)"
       name: "loon_neteasecloudmusic_remove_ads_01"
