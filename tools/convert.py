@@ -488,6 +488,11 @@ def _fetch_jq_program(url: str) -> str:
     return " ".join(part.strip() for part in kept if part.strip())
 
 
+def _flatten_jq(expression: str) -> str:
+    """Stash 的 response-jq 是单行正则字段，多行表达式会被截断。"""
+    return " ".join(part.strip() for part in expression.split("\n") if part.strip())
+
+
 def _loon_response_jq(action: str, fetch: bool = True) -> str:
     jq_file = "response.json.jq_file("
     if action.startswith(jq_file) and action.endswith(")"):
@@ -504,7 +509,7 @@ def _loon_response_jq(action: str, fetch: bool = True) -> str:
             expression = json.loads(args_text)
             if not isinstance(expression, str):
                 raise ValueError("Loon response.json.jq expects a string")
-            return expression
+            return _flatten_jq(expression)
         args = json.loads(args_text if method == "delete" else f"[{args_text}]")
         if method == "delete":
             paths = args if isinstance(args, list) else [args]
@@ -679,6 +684,18 @@ def _parse_loon_script(
             else:
                 raise ValueError(f"Loon script argument has no default: {name}")
         options = _parse_loon_options(raw_options)
+        if "enable" in options:
+            enabled = options["enable"]
+            if re.fullmatch(r"\$\{([A-Za-z0-9_-]+)\}", enabled):
+                name = enabled[2:-1]
+                if name in overrides:
+                    enabled = overrides[name]
+                elif name in defaults:
+                    enabled = defaults[name]
+                else:
+                    raise ValueError(f"Loon enable has no default: {name}")
+            if not _parse_bool(enabled):
+                return ScriptRule(match=pattern, url="", type=directive)
         return ScriptRule(
             match=pattern,
             url=_mirror_kelee_url(json.loads(raw_url)),
