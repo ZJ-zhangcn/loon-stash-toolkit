@@ -26,7 +26,7 @@ http:
     - "^https:\\/\\/line3-h5-mobile-api\\.biligame\\.com\\/game\\/live\\/large_card_material\\? - reject-dict"
     - "^https:\\/\\/api\\.live\\.bilibili\\.com\\/xlive\\/e-commerce-interface\\/v1\\/ecommerce-user\\/get_shopping_info\\? - reject-dict"
   header-rewrite:
-    - "http-response ^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(interface\\.v1\\.(Teenagers\\/ModeStatus|Search\\/DefaultWords)|view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/(PlayPause|ViewEndPage))$ header-add \"grpc-status\" \"0\""
+    - "^https:\\/\\/grpc\\.biliapi\\.net\\/bilibili\\.app\\.(interface\\.v1\\.(Teenagers\\/ModeStatus|Search\\/DefaultWords)|view\\.v1\\.View\\/TFInfo|viewunite\\.v1\\.View\\/(PlayPause|ViewEndPage))$ response-add \"grpc-status\" \"0\""
   body-rewrite:
     - "^https:\\/\\/api\\.bilibili\\.com\\/x\\/pd-proxy\\/tracker\\? response-jq .data[][]?=\"stun.chat.bilibili.com:3478\""
     - "^https:\\/\\/app\\.bilibili\\.com\\/x\\/v2\\/splash\\/(show|event\\/list2)\\? response-jq .data |= with_entries(if .key | IN(\"show\", \"event_list\") then .value = [] else . end)"

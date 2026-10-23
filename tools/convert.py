@@ -609,11 +609,10 @@ def _parse_loon_rewrite(line: str) -> tuple[str, Any]:
             return "mock", mock
         header_add = re.fullmatch(r'response[.]header[.]add\("([^"]+)",\s*"([^"]*)"\)', action)
         if header_add:
-            # Stash/Surge 的 header-rewrite 语法是 "http-response <match> header-add <name> <value>"，
-            # Loon 的 response-header-add 前缀会触发 "header-rewrite: invalid syntax"
+            # Stash header-rewrite 语法（官方文档）: "<match> response-add <name> <value>"
             return (
                 "header_rewrite",
-                f"http-response {pattern} header-add {_quote(header_add.group(1))} {_quote(header_add.group(2))}",
+                f"{pattern} response-add {_quote(header_add.group(1))} {_quote(header_add.group(2))}",
             )
         return "body_rewrite", f"{pattern} response-jq {_loon_response_jq(action)}"
 
