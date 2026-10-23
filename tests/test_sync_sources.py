@@ -93,7 +93,7 @@ response if ${url} ~= /^https:\/\/api\.example\/feed$/i then response.json.jq_fi
 
         self.assertEqual(
             converted.body_rewrite,
-            [r"(?i)^https://api\.example/feed$ response-jq .data.items |= map(select(.ad == false))"],
+            [r"(?i)^https:\/\/api\.example\/feed$ response-jq .data.items |= map(select(.ad == false))"],
         )
         fetch.assert_called_once_with("https://kelee.one/Resource/JQLang/example.jq")
 

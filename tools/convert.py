@@ -407,8 +407,12 @@ def parse_stash(text: str) -> Document:
 
 
 def _normalize_loon_regex(pattern: str, flags: str = "") -> str:
-    pattern = pattern.replace(r"\/", "/").replace("(?:", "(")
-    return f"(?i){pattern}" if "i" in flags else pattern
+    """Stash 的 match 走 NSRegularExpression：斜杠必须转义。
+
+    `(?i)` 可以保留（其它覆写已在使用），但不能让裸 `/` 进到 match 里。
+    """
+    pattern = pattern.replace(r"\/", "/").replace("/", r"\/")
+    return f"(?i){pattern}" if "i" in flags and "(?i)" not in pattern else pattern
 
 
 def _parse_loon_url_condition(

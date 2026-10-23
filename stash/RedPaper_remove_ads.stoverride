@@ -16,62 +16,62 @@ http:
     - "so.xiaohongshu.com"
     - "www.xiaohongshu.com"
   url-rewrite:
-    - "(?i)^https://ci\\.xiaohongshu\\.com/system_config/watermark - reject-img"
-    - "(?i)^https://edith\\.xiaohongshu\\.com/api/sns/v1/surprisebox/(get_style|open|submit_action) - reject-dict"
-    - "(?i)^https://www\\.xiaohongshu\\.com/api/marketing/box/trigger\\? - reject-dict"
-    - "(?i)^https://edith\\.xiaohongshu\\.com/api/sns/(v2/guide/user_banner|v3/note/guide) - reject-dict"
-    - "(?i)^https://www\\.xiaohongshu\\.com/api/sns/(v1/ads/resource|v2/hey/\\w+/hey_gallery) - reject-dict"
+    - "(?i)^https:\\/\\/ci\\.xiaohongshu\\.com\\/system_config\\/watermark - reject-img"
+    - "(?i)^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/surprisebox\\/(?:get_style|open|submit_action) - reject-dict"
+    - "(?i)^https:\\/\\/www\\.xiaohongshu\\.com\\/api\\/marketing\\/box\\/trigger\\? - reject-dict"
+    - "(?i)^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v2\\/guide\\/user_banner|v3\\/note\\/guide) - reject-dict"
+    - "(?i)^https:\\/\\/www\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v1\\/ads\\/resource|v2\\/hey\\/\\w+\\/hey_gallery) - reject-dict"
   body-rewrite:
-    - "(?i)^https://edith\\.xiaohongshu\\.com/api/sns/v1/search/banner_list$ response-jq (.data = {})"
-    - "(?i)^https://edith\\.xiaohongshu\\.com/api/sns/v1/search/hot_list$ response-jq (.data.items = [])"
-    - "(?i)^https://edith\\.xiaohongshu\\.com/api/sns/v4/search/hint response-jq (.data.hint_words = [])"
-    - "(?i)^https://edith\\.xiaohongshu\\.com/api/sns/v4/search/trending\\? response-jq (.data.queries = []) | (.data.hint_word = {})"
+    - "(?i)^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/search\\/banner_list$ response-jq (.data = {})"
+    - "(?i)^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/search\\/hot_list$ response-jq (.data.items = [])"
+    - "(?i)^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v4\\/search\\/hint response-jq (.data.hint_words = [])"
+    - "(?i)^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v4\\/search\\/trending\\? response-jq (.data.queries = []) | (.data.hint_word = {})"
   script:
-    - match: "(?i)^https://edith\\.xiaohongshu\\.com/api/sns/v1/note/(imagefeed|live_photo/save)"
+    - match: "(?i)^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/note\\/(?:imagefeed|live_photo\\/save)"
       name: "loon_redpaper_remove_ads_01"
       type: "response"
       require-body: true
-    - match: "(?i)^https://edith\\.xiaohongshu\\.com/api/sns/v1/system/service/ui/config\\?"
+    - match: "(?i)^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/system\\/service\\/ui\\/config\\?"
       name: "loon_redpaper_remove_ads_02"
       type: "response"
       require-body: true
-    - match: "(?i)^https://edith\\.xiaohongshu\\.com/api/sns/v1/system_service/config\\?"
+    - match: "(?i)^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v1\\/system_service\\/config\\?"
       name: "loon_redpaper_remove_ads_03"
       type: "response"
       require-body: true
-    - match: "(?i)^https://edith\\.xiaohongshu\\.com/api/sns/v2/system_service/splash_config"
+    - match: "(?i)^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v2\\/system_service\\/splash_config"
       name: "loon_redpaper_remove_ads_04"
       type: "response"
       require-body: true
-    - match: "(?i)^https://edith\\.xiaohongshu\\.com/api/sns/v2/(note/widgets|user/followings/followfeed)"
+    - match: "(?i)^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v2\\/(?:note\\/widgets|user\\/followings\\/followfeed)"
       name: "loon_redpaper_remove_ads_05"
       type: "response"
       require-body: true
-    - match: "(?i)^https://edith\\.xiaohongshu\\.com/api/sns/v4/followfeed\\?"
+    - match: "(?i)^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v4\\/followfeed\\?"
       name: "loon_redpaper_remove_ads_06"
       type: "response"
       require-body: true
-    - match: "(?i)^https://edith\\.xiaohongshu\\.com/api/sns/v5/recommend/user/follow_recommend\\?"
+    - match: "(?i)^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/v5\\/recommend\\/user\\/follow_recommend\\?"
       name: "loon_redpaper_remove_ads_07"
       type: "response"
       require-body: true
-    - match: "(?i)^https://edith\\.xiaohongshu\\.com/api/sns/(v1/interaction/comment/video/download|v5/note/comment/list)"
+    - match: "(?i)^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v1\\/interaction\\/comment\\/video\\/download|v5\\/note\\/comment\\/list)"
       name: "loon_redpaper_remove_ads_08"
       type: "response"
       require-body: true
-    - match: "(?i)^https://edith\\.xiaohongshu\\.com/api/sns/(v2/note/feed|v3/note/videofeed)"
+    - match: "(?i)^https:\\/\\/edith\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v2\\/note\\/feed|v3\\/note\\/videofeed)"
       name: "loon_redpaper_remove_ads_09"
       type: "response"
       require-body: true
-    - match: "(?i)^https://(edith|rec)\\.xiaohongshu\\.com/api/sns/v6/homefeed\\?"
+    - match: "(?i)^https:\\/\\/(?:edith|rec)\\.xiaohongshu\\.com\\/api\\/sns\\/v6\\/homefeed\\?"
       name: "loon_redpaper_remove_ads_10"
       type: "response"
       require-body: true
-    - match: "(?i)^https://(edith|so)\\.xiaohongshu\\.com/api/sns/v10/search/notes\\?"
+    - match: "(?i)^https:\\/\\/(?:edith|so)\\.xiaohongshu\\.com\\/api\\/sns\\/v10\\/search\\/notes\\?"
       name: "loon_redpaper_remove_ads_11"
       type: "response"
       require-body: true
-    - match: "(?i)^https://(edith|rec|www)\\.xiaohongshu\\.com/api/sns/(v4/note/videofeed|v10/note/video/save)"
+    - match: "(?i)^https:\\/\\/(?:edith|rec|www)\\.xiaohongshu\\.com\\/api\\/sns\\/(?:v4\\/note\\/videofeed|v10\\/note\\/video\\/save)"
       name: "loon_redpaper_remove_ads_12"
       type: "response"
       require-body: true

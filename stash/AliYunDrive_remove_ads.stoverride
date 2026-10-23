@@ -14,14 +14,14 @@ http:
     - "member.alipan.com"
     - "bizapi.alipan.com"
   url-rewrite:
-    - "(?i)^https://member\\.alipan\\.com/v2/activity/sign_in_luckyBottle - reject-dict"
-    - "(?i)^https://api\\.alipan\\.com/adrive/v1/file/getTopFolders - reject-dict"
+    - "(?i)^https:\\/\\/member\\.alipan\\.com\\/v2\\/activity\\/sign_in_luckyBottle - reject-dict"
+    - "(?i)^https:\\/\\/api\\.alipan\\.com\\/adrive\\/v1\\/file\\/getTopFolders - reject-dict"
   script:
-    - match: "(?i)^https://(biz)?api\\.alipan\\.com/apps/v\\d/users?/home/(news|widgets)"
+    - match: "(?i)^https:\\/\\/(biz)?api\\.alipan\\.com\\/apps\\/v\\d\\/users?\\/home\\/(news|widgets)"
       name: "loon_aliyundrive_remove_ads_01"
       type: "response"
       require-body: true
-    - match: "(?i)^https://member\\.alipan\\.com/v1/users/onboard_list"
+    - match: "(?i)^https:\\/\\/member\\.alipan\\.com\\/v1\\/users\\/onboard_list"
       name: "loon_aliyundrive_remove_ads_02"
       type: "response"
       require-body: true
