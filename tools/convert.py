@@ -910,10 +910,14 @@ def to_stash(document: Document, stem: str = "plugin") -> str:
                         output.append(f"        {name}: {_quote(str(value))}")
 
         providers: dict[str, dict[str, Any]] = {}
+        # 同一个脚本 URL 只登记一个 provider：Stash 按 provider 名缓存脚本内容，
+        # 同名不同 URL 或同 URL 多名都会让缓存与 argument 错配，整个 script 数组失效。
+        provider_by_url: dict[str, str] = {}
         if valid_scripts:
             output.append("  script:")
         for index, script in enumerate(valid_scripts, start=1):
-            name = _script_name(stem, index)
+            name = provider_by_url.get(script.url) or _script_name(stem, index)
+            provider_by_url.setdefault(script.url, name)
             output.append(f"    - match: {_quote(script.match)}")
             output.append(f"      name: {_quote(name)}")
             output.append(f"      type: {_quote(script.type)}")

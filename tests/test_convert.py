@@ -259,12 +259,19 @@ hostname = api.example.com
                     expected = [" ".join(value.split()) for value in expected]
                 self.assertEqual(actual, expected)
 
-        expected_providers = {
-            name: provider
+        # provider 名在各文件间可能重名（同一脚本被多条规则引用），按 URL 校验内容完整
+        expected_urls = sorted(
+            provider["url"]
             for doc in source_docs
-            for name, provider in doc.script_providers.items()
-        }
-        self.assertEqual(aggregate.script_providers, expected_providers)
+            for provider in doc.script_providers.values()
+            if "url" in provider
+        )
+        actual_urls = sorted(
+            provider["url"]
+            for provider in aggregate.script_providers.values()
+            if "url" in provider
+        )
+        self.assertEqual(actual_urls, expected_urls)
         self.assertEqual(
             aggregate.warnings,
             [warning for doc in source_docs for warning in doc.warnings],

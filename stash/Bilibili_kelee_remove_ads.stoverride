@@ -81,7 +81,7 @@ http:
       timeout: 10
       argument: "{\"logLevel\":\"off\"}"
     - match: "^https:\\/\\/(?:grpc\\.biliapi\\.net|app\\.bilibili\\.com)\\/bilibili\\.(?:app\\.viewunite\\.v1\\.View\\/View|main\\.community\\.reply\\.v1\\.Reply\\/MainList)$"
-      name: "loon_bilibili_kelee_remove_ads_02"
+      name: "loon_bilibili_kelee_remove_ads_01"
       type: "request"
       require-body: true
       binary-mode: true
@@ -99,9 +99,6 @@ http:
       require-body: true
 script-providers:
   "loon_bilibili_kelee_remove_ads_01":
-    url: "https://git.repcz.link/kelee.one/Resource/JavaScript/Bilibili/Bilibili_proto_request_kokoryh.js"
-    interval: 86400
-  "loon_bilibili_kelee_remove_ads_02":
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/Bilibili/Bilibili_proto_request_kokoryh.js"
     interval: 86400
   "loon_bilibili_kelee_remove_ads_03":
