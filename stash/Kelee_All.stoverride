@@ -1806,7 +1806,7 @@ http:
         Content-Type: application/grpc
         grpc-status: '0'
   header-rewrite:
-    - ^https:\/\/grpc\.biliapi\.net\/bilibili\.app\.(interface\.v1\.(Teenagers\/ModeStatus|Search\/DefaultWords)|view\.v1\.View\/TFInfo|viewunite\.v1\.View\/(PlayPause|ViewEndPage))$ response-header-add "grpc-status" "0"
+    - http-response ^https:\/\/grpc\.biliapi\.net\/bilibili\.app\.(interface\.v1\.(Teenagers\/ModeStatus|Search\/DefaultWords)|view\.v1\.View\/TFInfo|viewunite\.v1\.View\/(PlayPause|ViewEndPage))$ header-add "grpc-status" "0"
 script-providers:
   loon_pinduoduo_remove_ads_01:
     url: https://git.repcz.link/kelee.one/Resource/JavaScript/PinDuoDuo/PinDuoDuo_remove_ads.js
@@ -3035,4 +3035,4 @@ script-providers:
   bilibili-webpage:
     url: https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/webpage.bilibili.js
     interval: 86400
-date: '2026-10-24 00:41:04'
+date: '2026-10-24 00:55:37'
