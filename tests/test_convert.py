@@ -163,12 +163,17 @@ hostname = api.example.com
         expected.add("Kelee_All.stoverride")
         actual = {path.name for path in (ROOT / "stash").glob("*.stoverride")}
 
-        self.assertEqual(len(mappings), 31)
+        self.assertEqual(len(mappings), 32)
         self.assertEqual(
-            sum("kelee.one" in item["source"] for item in mappings), 30
+            sum("kelee.one" in item["source"] for item in mappings), 31
+        )
+        meituan = next(
+            item
+            for item in mappings
+            if item["output"] == "Meituan-MeituanWaimai.stoverride"
         )
         self.assertEqual(
-            mappings[-2]["source"],
+            meituan["source"],
             "https://github.com/fmz200/wool_scripts/raw/main/Loon/plugin/split/partM/Meituan-MeituanWaimai.lpx",
         )
         self.assertEqual(actual, expected)
@@ -460,6 +465,38 @@ class RuleTypeTests(unittest.TestCase):
             )
             self.assertEqual(document.warnings, [], rule_type)
             self.assertEqual(len(document.rules), 1, rule_type)
+
+
+    def test_rewrite_line_inside_rule_section_becomes_url_rewrite(self) -> None:
+        """斗鱼插件把重定向行写在了 [Rule] 段里，且 Loon 的状态码位置与 Stash 相反。"""
+        document = parse_loon(
+            "#!name=测试\n#!desc=x\n#!author=a\n#!homepage=https://x\n"
+            "#!icon=https://x/i.png\n#!category=测试\n"
+            "[Rule]\n"
+            "^(http:\\/\\/)(\\d+)\\/(host)(.*) 307 $1$4$5\n"
+            "DOMAIN, a.com, DIRECT\n"
+        )
+        self.assertEqual(
+            document.url_rewrite, ["^(http:\\/\\/)(\\d+)\\/(host)(.*) $1$4$5 307"]
+        )
+        self.assertEqual(document.rules, ["DOMAIN,a.com,DIRECT"])
+        self.assertEqual(document.warnings, [])
+
+    def test_loon_spellings_are_normalised(self) -> None:
+        document = parse_loon(
+            "#!name=测试\n#!desc=x\n#!author=a\n#!homepage=https://x\n"
+            "#!icon=https://x/i.png\n#!category=测试\n"
+            "[Rule]\n"
+            'URL-REGEX, "^http:\\/\\/a\\.com", REJECT\n'
+            "AND, ((DEST-PORT, 18000), (PROTOCOL, STUN)), REJECT\n"
+        )
+        self.assertEqual(
+            document.rules,
+            [
+                "URL-REGEX,^http:\\/\\/a\\.com,REJECT",
+                "AND,((DST-PORT,18000),(PROTOCOL,STUN)),REJECT",
+            ],
+        )
 
 
 if __name__ == "__main__":

@@ -1,5 +1,5 @@
 name: Loon 覆写合集
-desc: 聚合本仓库 31 个 Loon 来源覆写及 1 个 Bilibili 衍生覆写。单项文件仍保留在仓库中。
+desc: 聚合本仓库 32 个 Loon 来源覆写及 1 个 Bilibili 衍生覆写。单项文件仍保留在仓库中。
 author: 各来源插件作者；合集整理：ZJ-zhangcn
 homepage: https://github.com/ZJ-zhangcn/loon-stash-toolkit
 icon: https://github.com/luestr.png
@@ -353,22 +353,22 @@ rules:
   - DOMAIN,ep7.facebook.com,REJECT
   - DOMAIN-KEYWORD,httpdns,REJECT
   - DOMAIN-KEYWORD,httpsdns,REJECT
-  - USER-AGENT,"httpdns*",REJECT
-  - USER-AGENT,"httpsdns*",REJECT
-  - USER-AGENT,"Httpdns*",REJECT
-  - USER-AGENT,"Httpsdns*",REJECT
+  - USER-AGENT,httpdns*,REJECT
+  - USER-AGENT,httpsdns*,REJECT
+  - USER-AGENT,Httpdns*,REJECT
+  - USER-AGENT,Httpsdns*,REJECT
   - AND,((URL-REGEX,^http:\/\/119\.29\.29\.90\/d\?),(USER-AGENT,%E5%98%80%E5%97%92%E5%87%BA%E8%A1%8C*)),DIRECT
   - AND,((URL-REGEX,^http:\/\/119\.28\.28\.90\/d\?),(USER-AGENT,%E5%98%80%E5%97%92%E5%87%BA%E8%A1%8C*)),DIRECT
-  - URL-REGEX,"^http:\/\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?:\/v?[0-9]+)?\/(?:sign_)?(?:(?:d|ss)[46]?|resolve)\?",REJECT
-  - URL-REGEX,"^http:\/\/\[[0-9a-fA-F:]+\](?:\/v?[0-9]+)?\/(?:sign_)?(?:(?:d|ss)[46]?|resolve)\?",REJECT
+  - URL-REGEX,^http:\/\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(?:\/v?[0-9]+)?\/(?:sign_)?(?:(?:d|ss)[46]?|resolve)\?,REJECT
+  - URL-REGEX,^http:\/\/\[[0-9a-fA-F:]+\](?:\/v?[0-9]+)?\/(?:sign_)?(?:(?:d|ss)[46]?|resolve)\?,REJECT
   - DOMAIN,yyapp-httpdns.gslb.yy.com,REJECT
   - DOMAIN,union-httpdns.gslb.yy.com,REJECT
   - DOMAIN,yuyin-httpdns.gslb.yy.com,REJECT
   - DOMAIN,httpdns-v6.gslb.yy.com,REJECT
-  - URL-REGEX,"^http:\/\/103\.44\.58\.64\/md\?",REJECT
-  - URL-REGEX,"^http:\/\/cdn\.wup\.huya\.com\/launch\/queryHttpDns",REJECT
+  - URL-REGEX,^http:\/\/103\.44\.58\.64\/md\?,REJECT
+  - URL-REGEX,^http:\/\/cdn\.wup\.huya\.com\/launch\/queryHttpDns,REJECT
   - DOMAIN,dns2.q2cdn.com,REJECT
-  - URL-REGEX,"^http:\/\/xmc\.ximalaya\.com\/xmlymain-login-web\/login\/",REJECT
+  - URL-REGEX,^http:\/\/xmc\.ximalaya\.com\/xmlymain-login-web\/login\/,REJECT
   - DOMAIN,dns.weixin.qq.com,REJECT
   - DOMAIN,dns.weixin.qq.com.cn,REJECT
   - DOMAIN,aedns.weixin.qq.com,REJECT
@@ -426,11 +426,11 @@ rules:
   - DOMAIN,amdc.alipay.com,REJECT
   - DOMAIN,ucdc.upaas.quark.cn,REJECT
   - DOMAIN,httpdns.danuoyi.tbcache.com,REJECT
-  - URL-REGEX,"^http:\/\/amdc\.m\.taobao\.com\/amdc\/mobileDispatch",REJECT
-  - URL-REGEX,"^http:\/\/47\.246\.103\.9\/amdc\/mobileDispatch",REJECT
-  - URL-REGEX,"^http:\/\/47\.246\.103\.10\/amdc\/mobileDispatch",REJECT
-  - URL-REGEX,"^http:\/\/59\.82\.113\.10\/amdc\/mobileDispatch",REJECT
-  - URL-REGEX,"^http:\/\/59\.82\.113\.219\/amdc\/mobileDispatch",REJECT
+  - URL-REGEX,^http:\/\/amdc\.m\.taobao\.com\/amdc\/mobileDispatch,REJECT
+  - URL-REGEX,^http:\/\/47\.246\.103\.9\/amdc\/mobileDispatch,REJECT
+  - URL-REGEX,^http:\/\/47\.246\.103\.10\/amdc\/mobileDispatch,REJECT
+  - URL-REGEX,^http:\/\/59\.82\.113\.10\/amdc\/mobileDispatch,REJECT
+  - URL-REGEX,^http:\/\/59\.82\.113\.219\/amdc\/mobileDispatch,REJECT
   - DOMAIN,xpis-xcdn.youku.com,REJECT
   - DOMAIN,pre-xpis-xcdn.youku.com,REJECT
   - DOMAIN,xpis-tel-xcdn.youku.com,REJECT
@@ -474,7 +474,7 @@ rules:
   - DOMAIN,httpdns.meituan.com,REJECT
   - DOMAIN,httpdnsmultiapi.meituan.com,REJECT
   - DOMAIN,httpdnsmultiapivip.meituan.com,REJECT
-  - URL-REGEX,"^http:\/\/103\.37\.155\.60\/fetch",REJECT
+  - URL-REGEX,^http:\/\/103\.37\.155\.60\/fetch,REJECT
   - DOMAIN,httpdns.music.163.com,REJECT
   - DOMAIN,httpdns.n.netease.com,REJECT
   - DOMAIN,httpdns-sdk.n.netease.com,REJECT
@@ -491,8 +491,8 @@ rules:
   - DOMAIN,dns.weibo.cn,REJECT
   - IP-CIDR,39.97.130.51/32,REJECT,no-resolve
   - IP-CIDR,39.97.128.148/32,REJECT,no-resolve
-  - URL-REGEX,"^http:\/\/api\.weibo\.cn\/\d+\/httpdns\/config",REJECT
-  - URL-REGEX,"^http:\/\/api\.weibo\.cn\/httpdns\/config",REJECT
+  - URL-REGEX,^http:\/\/api\.weibo\.cn\/\d+\/httpdns\/config,REJECT
+  - URL-REGEX,^http:\/\/api\.weibo\.cn\/httpdns\/config,REJECT
   - URL-REGEX,^http:\/\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/v\d\/resolv\?,REJECT
   - IP-CIDR,103.41.167.237/32,REJECT,no-resolve
   - IP-CIDR,118.89.204.198/32,REJECT,no-resolve
@@ -510,8 +510,8 @@ rules:
   - DOMAIN,tp2p.kg.qq.com,REJECT
   - IP-CIDR,81.71.61.216/32,REJECT,no-resolve
   - DOMAIN,httpdns.immomo.com,REJECT
-  - URL-REGEX,"^http:\/\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):\d+\/httpdns\/",REJECT
-  - URL-REGEX,"^http:\/\/\[[0-9a-fA-F:]+\]:\d+\/httpdns\/",REJECT
+  - URL-REGEX,^http:\/\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?):\d+\/httpdns\/,REJECT
+  - URL-REGEX,^http:\/\/\[[0-9a-fA-F:]+\]:\d+\/httpdns\/,REJECT
   - DOMAIN,httpdns.zybang.com,REJECT
   - DOMAIN-SUFFIX,wxs.qq.com,REJECT
   - AND,((URL-REGEX,"^http:\/\/((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\/d(\d)?"),(USER-AGENT,"*com.xunmeng.pinduoduo*")),REJECT
@@ -543,7 +543,7 @@ rules:
   - DOMAIN,iadmusicmatvideo.music.126.net,REJECT
   - DOMAIN,ipv4.music.163.com,REJECT
   - DOMAIN,ipv6.music.163.com,REJECT
-  - URL-REGEX,"^http:\/\/\w{32}\.jddebug\.com\/diagnose\?",REJECT
+  - URL-REGEX,^http:\/\/\w{32}\.jddebug\.com\/diagnose\?,REJECT
   - DOMAIN,adx-api.zdmimg.com,REJECT
   - DOMAIN,adsmind.gdtimg.com,REJECT
   - DOMAIN,adsmind.ugdtimg.com,REJECT
@@ -578,7 +578,7 @@ rules:
   - DOMAIN-SUFFIX,l.qq.com,REJECT
   - DOMAIN-SUFFIX,ugdtimg.com,REJECT
   - IP-CIDR,47.110.187.87/32,REJECT,no-resolve
-  - URL-REGEX,"^http:\/\/y\.gtimg\.cn\/music\/common\/upload\/t_k_main_page_banner\/",REJECT
+  - URL-REGEX,^http:\/\/y\.gtimg\.cn\/music\/common\/upload\/t_k_main_page_banner\/,REJECT
   - DOMAIN,wxsnsdy.wxs.qq.com,REJECT
   - DOMAIN,wxsmsdy.video.qq.com,REJECT
   - DOMAIN,wxsnsdythumb.wxs.qq.com,REJECT
@@ -654,6 +654,10 @@ rules:
   - DOMAIN,api.biliapi.net,REJECT
   - DOMAIN,app.biliapi.net,REJECT
   - AND,((DOMAIN-SUFFIX,chat.bilibili.com),(OR,((DOMAIN-KEYWORD,stun),(DOMAIN-KEYWORD,tracker),(DOMAIN-KEYWORD,p2p)))),REJECT
+  - URL-REGEX,^http:\/\/linkmicschedule\.douyucdn\.cn\/im_schedule\/im_gate_list,REJECT
+  - AND,((DST-PORT,18000),(PROTOCOL,STUN)),REJECT
+  - DOMAIN,stun1.douyucdn.cn,REJECT
+  - DOMAIN,stun1.qvb.qcloud.com,REJECT
   - DOMAIN,bsbsb.top,DIRECT
   - DOMAIN,api.biliapi.com,REJECT
   - DOMAIN,app.biliapi.com,REJECT
@@ -842,6 +846,9 @@ http:
     - api.bilibili.com
     - api.live.bilibili.com
     - line3-h5-mobile-api.biligame.com
+    - rtbapi.douyucdn.cn
+    - apiv2.douyucdn.cn
+    - venus.douyucdn.cn
     - grpc.biliapi.net
     - app.bilibili.com
     - api.bilibili.com
@@ -1118,6 +1125,8 @@ http:
     - "^http:\\/\\/59\\.82\\.113\\.10\\/amdc\\/mobileDispatch\\?appkey=213807& - reject-dict"
     - "^https:\\/\\/line3-h5-mobile-api\\.biligame\\.com\\/game\\/live\\/large_card_material\\? - reject-dict"
     - "^https:\\/\\/api\\.live\\.bilibili\\.com\\/xlive\\/e-commerce-interface\\/v1\\/ecommerce-user\\/get_shopping_info\\? - reject-dict"
+    - "^(http:\\/\\/)((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\/(hlsh5p1\\.douyucdn2\\.cn)(.*) $1$5$6 307"
+    - "^https:\\/\\/rtbapi\\.douyucdn\\.cn\\/japi\\/sign\\/app\\/getinfo - reject-dict"
     - "^https:\\/\\/api\\.live\\.bilibili\\.com\\/xlive\\/e-commerce-interface\\/v1\\/ecommerce-user\\/get_shopping_info\\? - reject-dict"
     - "^https:\\/\\/line3-h5-mobile-api\\.biligame\\.com\\/game\\/live\\/large_card_material\\? - reject-dict"
   body-rewrite:
@@ -1226,6 +1235,8 @@ http:
     - "^https:\\/\\/app\\.bilibili\\.com\\/x\\/resource\\/show\\/skin\\? response-jq del(.data.common_equip)"
     - '^https:\/\/app\.bilibili\.com\/x\/v2\/account\/mine(\/ipad)?\? response-jq .data |= ( del(.answer, .live_tip, .vip_section, .vip_section_v2, .modular_vip_section) | .vip_type = 2 | .vip |= if . != null and .status == 0 then . + { status: 1, type: 2, due_date: 9005270400000, role: 15 } else . end | if .sections_v2 then .sections_v2 = [ { "items": [ { "id": 396, "title": "离线缓存", "uri": "bilibili://user_center/download", "icon": "http://i0.hdslb.com/bfs/archive/5fc84565ab73e716d20cd2f65e0e1de9495d56f8.png", "common_op_item": {} }, { "id": 397, "title": "历史记录", "uri": "bilibili://user_center/history", "icon": "http://i0.hdslb.com/bfs/archive/8385323c6acde52e9cd52514ae13c8b9481c1a16.png", "common_op_item": {} }, { "id": 3072, "title": "我的收藏", "uri": "bilibili://user_center/favourite?version=2", "icon": "http://i0.hdslb.com/bfs/archive/d79b19d983067a1b91614e830a7100c05204a821.png", "common_op_item": {} }, { "id": 2830, "title": "稍后再看", "uri": "bilibili://user_center/watch_later_v2", "icon": "http://i0.hdslb.com/bfs/archive/63bb768caa02a68cb566a838f6f2415f0d1d02d6.png", "need_login": 1, "common_op_item": {} } ], "style": 1, "button": {} }, { "title": "推荐服务", "items": [ { "id": 402, "title": "个性装扮", "uri": "https://www.bilibili.com/h5/mall/home?navhide=1&f_source=shop&from=myservice", "icon": "http://i0.hdslb.com/bfs/archive/0bcad10661b50f583969b5a188c12e5f0731628c.png", "common_op_item": {} }, { "id": 622, "title": "会员购", "uri": "bilibili://mall/home", "icon": "http://i0.hdslb.com/bfs/archive/19c794f01def1a267b894be84427d6a8f67081a9.png", "common_op_item": {} }, { "id": 404, "title": "我的钱包", "uri": "bilibili://bilipay/mine_wallet", "icon": "http://i0.hdslb.com/bfs/archive/f416634e361824e74a855332b6ff14e2e7c2e082.png", "common_op_item": {} }, { "id": 406, "title": "我的直播", "uri": "bilibili://user_center/live_center", "icon": "http://i0.hdslb.com/bfs/archive/1db5791746a0112890b77a0236baf263d71ecb27.png", "common_op_item": {}, } ], "style": 1, "button": {} }, { "title": "更多服务", "items": [ { "id": 407, "title": "联系客服", "uri": "bilibili://user_center/feedback", "icon": "http://i0.hdslb.com/bfs/archive/7ca840cf1d887a45ee1ef441ab57845bf26ef5fa.png", "common_op_item": {} }, { "id": 410, "title": "设置", "uri": "bilibili://user_center/setting", "icon": "http://i0.hdslb.com/bfs/archive/e932404f2ee62e075a772920019e9fbdb4b5656a.png", "common_op_item": {} } ], "style": 2, "button": {} } ] end | if .ipad_sections then .ipad_sections = [ { "id": 747, "title": "离线缓存", "uri": "bilibili://user_center/download", "icon": "http://i0.hdslb.com/bfs/feed-admin/9bd72251f7366c491cfe78818d453455473a9678.png", "mng_resource": { "icon_id": 0, "icon": "" } }, { "id": 748, "title": "历史记录", "uri": "bilibili://user_center/history", "icon": "http://i0.hdslb.com/bfs/feed-admin/83862e10685f34e16a10cfe1f89dbd7b2884d272.png", "mng_resource": { "icon_id": 0, "icon": "" } }, { "id": 749, "title": "我的收藏", "uri": "bilibili://user_center/favourite", "icon": "http://i0.hdslb.com/bfs/feed-admin/6ae7eff6af627590fc4ed80c905e9e0a6f0e8188.png", "mng_resource": { "icon_id": 0, "icon": "" } }, { "id": 750, "title": "稍后再看", "uri": "bilibili://user_center/watch_later", "icon": "http://i0.hdslb.com/bfs/feed-admin/928ba9f559b02129e51993efc8afe95014edec94.png", "mng_resource": { "icon_id": 0, "icon": "" } } ] end | if .ipad_upper_sections then .ipad_upper_sections = [ { "id": 752, "title": "创作首页", "uri": "/uper/homevc", "icon": "http://i0.hdslb.com/bfs/feed-admin/d20dfed3b403c895506b1c92ecd5874abb700c01.png", "mng_resource": { "icon_id": 0, "icon": "" } } ] end | if .ipad_recommend_sections then .ipad_recommend_sections = [ { "id": 755, "title": "我的关注", "uri": "bilibili://user_center/myfollows", "icon": "http://i0.hdslb.com/bfs/feed-admin/fdd7f676030c6996d36763a078442a210fc5a8c0.png", "mng_resource": { "icon_id": 0, "icon": "" } }, { "id": 756, "title": "我的消息", "uri": "bilibili://link/im_home", "icon": "http://i0.hdslb.com/bfs/feed-admin/e1471740130a08a48b02a4ab29ed9d5f2281e3bf.png", "mng_resource": { "icon_id": 0, "icon": "" } } ] end | if .ipad_more_sections then .ipad_more_sections = [ { "id": 763, "title": "我的客服", "uri": "bilibili://user_center/feedback", "icon": "http://i0.hdslb.com/bfs/feed-admin/7801a6180fb67cf5f8ee05a66a4668e49fb38788.png", "mng_resource": { "icon_id": 0, "icon": "" } }, { "id": 764, "title": "设置", "uri": "bilibili://user_center/setting", "icon": "http://i0.hdslb.com/bfs/feed-admin/34e8faea00b3dd78977266b58d77398b0ac9410b.png", "mng_resource": { "icon_id": 0, "icon": "" } } ] end )'
     - "^https:\\/\\/app\\.bilibili\\.com\\/x\\/v2\\/account\\/myinfo\\? response-jq .data.vip |= if . != null and .status == 0 then . + { status: 1, type: 2, due_date: 9005270400000, role: 15 } else . end"
+    - "^https:\\/\\/apiv2\\.douyucdn\\.cn\\/japi\\/entrance\\/roomRes\\/nc\\/m\\/list response-jq del(.data.pendant_a, .data.entrance_d)"
+    - "^https:\\/\\/venus\\.douyucdn\\.cn\\/venus\\/config\\/static\\/update.+keyCodeSet=flow_config response-jq (.greatGodGameSitterSwitch = 0) | (.followMoreAnchorEntrance = 0) | (.sdklivebanner = 0) | (.homeActFloatSwitch = 0) | (.bringGoodsSwitch = 0) | (.qqGameSwitch = 0)"
     - ^https:\/\/api\.live\.bilibili\.com\/xlive\/open-interface\/v2\/tracker\/conf\? response-jq .data.domains = ["wss://tracker.chat.bilibili.com"]
     - ^https:\/\/api\.bilibili\.com\/x\/pd-proxy\/tracker\? response-jq .data[][]? = "stun.chat.bilibili.com:3478"
     - "^https:\\/\\/api\\.bilibili\\.com\\/pgc\\/view\\/v2\\/app\\/season\\? response-jq del(.data.payment)"
@@ -1693,6 +1704,10 @@ http:
       argument: '{"displayUpList":"show","purifyComment":true,"sponsorBlock":true,"logLevel":"off"}'
     - match: "^https:\\/\\/api\\.live\\.bilibili\\.com\\/xlive\\/(?:app-interface\\/v2\\/index\\/feed|app-room\\/v1\\/index\\/getInfoBy(?:Room|User))\\?"
       name: loon_bilibili_kelee_remove_ads_04
+      type: response
+      require-body: true
+    - match: "^https:\\/\\/apiv2\\.douyucdn\\.cn\\/mgapi\\/livenc\\/home\\/getRecV3"
+      name: loon_douyu_remove_ads_01
       type: response
       require-body: true
     - match: "^https:\\/\\/(grpc\\.biliapi\\.net|app\\.bilibili\\.com)\\/bilibili\\.community\\.service\\.dm\\.v1\\.DM\\/DmSegMobile$"
@@ -3024,6 +3039,9 @@ script-providers:
   loon_bilibili_kelee_remove_ads_04:
     url: https://git.repcz.link/kelee.one/Resource/JavaScript/Bilibili/Bilibili_json_kokoryh.js
     interval: 86400
+  loon_douyu_remove_ads_01:
+    url: https://git.repcz.link/kelee.one/Resource/JavaScript/Douyu/Douyu_remove_ads.js
+    interval: 86400
   bilibili-protobuf-request:
     url: https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.protobuf.request.js
     interval: 86400
@@ -3036,4 +3054,4 @@ script-providers:
   bilibili-webpage:
     url: https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/webpage.bilibili.js
     interval: 86400
-date: '2026-10-24 01:07:26'
+date: '2026-10-24 10:23:40'

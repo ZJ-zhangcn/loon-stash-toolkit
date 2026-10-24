@@ -169,5 +169,10 @@
       "logLevel": "off"
     },
     "drop_header_rewrite": true
+  },
+  {
+    "name": "斗鱼去广告",
+    "source": "https://kelee.one/Tool/Loon/Lpx/Douyu_remove_ads.lpx",
+    "output": "Douyu_remove_ads.stoverride"
   }
 ]

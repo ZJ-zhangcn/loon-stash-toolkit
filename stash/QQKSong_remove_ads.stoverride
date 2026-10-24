@@ -40,7 +40,7 @@ rules:
   - "DOMAIN-SUFFIX,l.qq.com,REJECT"
   - "DOMAIN-SUFFIX,ugdtimg.com,REJECT"
   - "IP-CIDR,47.110.187.87/32,REJECT,no-resolve"
-  - "URL-REGEX,\"^http:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_k_main_page_banner\\/\",REJECT"
+  - "URL-REGEX,^http:\\/\\/y\\.gtimg\\.cn\\/music\\/common\\/upload\\/t_k_main_page_banner\\/,REJECT"
 http:
   mitm:
     - "wallpaper-1258344696.file.myqcloud.com"

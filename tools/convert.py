@@ -887,9 +887,31 @@ def _parse_loon_script(
     )
 
 
+def _as_loon_url_rewrite(line: str) -> str | None:
+    """识别 Loon 的重定向行：`pattern 302|307 replacement`。
+
+    有的插件把这种行放错在 [Rule] 段里。Loon 把状态码写在替换目标之前，
+    Stash 写在之后，顺序必须互换。
+    """
+    match = re.fullmatch(r"(\S+)\s+(302|307)\s+(\S+)", line.strip())
+    if not match:
+        return None
+    pattern, code, target = match.groups()
+    if not pattern.startswith("^"):
+        return None
+    return f"{pattern} {target} {code}"
+
+
 def _normalize_loon_rule(line: str) -> str:
     """Loon 允许 `DOMAIN, x, PROXY` 这种带空格的写法，Stash 只认紧凑格式。"""
     rule = re.sub(r"\s*,\s*", ",", line.strip())
+    # 去掉包裹整个字段的多余双引号，如 URL-REGEX, "^https:\/\/x", REJECT
+    rule = ",".join(
+        part[1:-1] if len(part) >= 2 and part[0] == part[-1] == '"' else part
+        for part in rule.split(",")
+    )
+    # Loon 写 DEST-PORT，Stash 叫 DST-PORT
+    rule = re.sub(r"\bDEST-PORT\b", "DST-PORT", rule)
     # Loon 的 PROXY 是「默认策略」，Stash 没有同名出站，落地为 DIRECT
     rule = re.sub(r",PROXY$", ",DIRECT", rule)
     rule_type = rule.split(",", 1)[0].upper()
@@ -942,11 +964,19 @@ def parse_loon(
             continue
         if section in LOON_SCRIPT_SECTIONS:
             if section == "[RULE]":
+                redirect = _as_loon_url_rewrite(line)
+                if redirect:
+                    document.url_rewrite.append(redirect)
+                    continue
                 try:
                     line = _normalize_loon_rule(line)
                 except ValueError as exc:
                     document.warnings.append(str(exc))
                     continue
+            elif section == "[URL REWRITE]":
+                redirect = _as_loon_url_rewrite(line)
+                if redirect:
+                    line = redirect
             getattr(document, LOON_SCRIPT_SECTIONS[section]).append(line)
             continue
         if section == "[SCRIPT]":

@@ -1,0 +1,33 @@
+name: "斗鱼去广告"
+desc: |-
+  移除开屏、首页视频流、首页轮播图广告，移除直播间悬浮窗。
+author: "可莉🅥[https://github.com/luestr/ProxyResource/blob/main/README.md]"
+homepage: "https://hub.kelee.one"
+icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Douyu.png"
+category: "去广告"
+date: "2026-10-02 13:57:49"
+rules:
+  - "URL-REGEX,^http:\\/\\/linkmicschedule\\.douyucdn\\.cn\\/im_schedule\\/im_gate_list,REJECT"
+  - "AND,((DST-PORT,18000),(PROTOCOL,STUN)),REJECT"
+  - "DOMAIN,stun1.douyucdn.cn,REJECT"
+  - "DOMAIN,stun1.qvb.qcloud.com,REJECT"
+http:
+  mitm:
+    - "rtbapi.douyucdn.cn"
+    - "apiv2.douyucdn.cn"
+    - "venus.douyucdn.cn"
+  url-rewrite:
+    - "^(http:\\/\\/)((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\/(hlsh5p1\\.douyucdn2\\.cn)(.*) $1$5$6 307"
+    - "^https:\\/\\/rtbapi\\.douyucdn\\.cn\\/japi\\/sign\\/app\\/getinfo - reject-dict"
+  body-rewrite:
+    - "^https:\\/\\/apiv2\\.douyucdn\\.cn\\/japi\\/entrance\\/roomRes\\/nc\\/m\\/list response-jq del(.data.pendant_a, .data.entrance_d)"
+    - "^https:\\/\\/venus\\.douyucdn\\.cn\\/venus\\/config\\/static\\/update.+keyCodeSet=flow_config response-jq (.greatGodGameSitterSwitch = 0) | (.followMoreAnchorEntrance = 0) | (.sdklivebanner = 0) | (.homeActFloatSwitch = 0) | (.bringGoodsSwitch = 0) | (.qqGameSwitch = 0)"
+  script:
+    - match: "^https:\\/\\/apiv2\\.douyucdn\\.cn\\/mgapi\\/livenc\\/home\\/getRecV3"
+      name: "loon_douyu_remove_ads_01"
+      type: "response"
+      require-body: true
+script-providers:
+  "loon_douyu_remove_ads_01":
+    url: "https://git.repcz.link/kelee.one/Resource/JavaScript/Douyu/Douyu_remove_ads.js"
+    interval: 86400
