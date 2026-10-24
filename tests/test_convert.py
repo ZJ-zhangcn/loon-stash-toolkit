@@ -311,13 +311,10 @@ hostname = api.example.com
             "captionLang": "zh-Hans",
             "debug": False,
         }
-        self.assertEqual(len(document.scripts), 3)
+        # initplayback 那条已按 Stash 兼容性移除，只剩 player 响应脚本和 log_event
+        self.assertEqual(len(document.scripts), 2)
         self.assertEqual(json.loads(document.scripts[0].argument or "{}"), expected)
-        self.assertEqual(
-            json.loads(document.scripts[1].argument or "{}"),
-            {"captionLang": "zh-Hans"},
-        )
-        self.assertEqual(json.loads(document.scripts[2].argument or "{}"), expected)
+        self.assertEqual(json.loads(document.scripts[1].argument or "{}"), expected)
 
     def test_all_stash_overrides_convert_to_parseable_loon(self) -> None:
         for path in sorted((ROOT / "stash").glob("*.stoverride")):

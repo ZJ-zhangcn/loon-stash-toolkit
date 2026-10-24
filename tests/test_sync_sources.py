@@ -178,5 +178,18 @@ DOMAIN,example.com,REJECT
             convert_source(item, source)
 
 
+class YoutubeTests(unittest.TestCase):
+    def test_youtube_override_does_not_mitm_the_video_cdn(self) -> None:
+        """googlevideo 承载全部视频分片；Stash 接管后播放会一直转圈。"""
+        document = parse_stash(
+            (ROOT / "stash" / "YouTube_remove_ads.stoverride").read_text(encoding="utf-8")
+        )
+        self.assertNotIn("*.googlevideo.com", document.mitm)
+        self.assertEqual(document.mitm, ["youtubei.googleapis.com"])
+        self.assertFalse(
+            [rule for rule in document.scripts if "googlevideo" in rule.match]
+        )
+
+
 if __name__ == "__main__":
     unittest.main()

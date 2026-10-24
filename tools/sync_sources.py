@@ -75,6 +75,15 @@ def convert_source(item: dict[str, Any], source_text: str) -> str:
     if item.get("drop_header_rewrite"):
         document.header_rewrite.clear()
 
+    # 视频 CDN 不适合走 MITM：Stash 会接管整条媒体流，播放容易卡死。
+    # 只保留真正需要脚本的域名，别为了一个可选优化把播放搞挂。
+    if item.get("drop_mitm"):
+        banned = set(item["drop_mitm"])
+        document.mitm[:] = [host for host in document.mitm if host not in banned]
+
+    for needle in item.get("drop_scripts") or []:
+        document.scripts[:] = [rule for rule in document.scripts if needle not in rule.match]
+
     required: list[str] = list(REQUIRED_METADATA)
     if not (document.metadata.get("category") or document.metadata.get("tag")):
         required.append("category")

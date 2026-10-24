@@ -836,7 +836,6 @@ http:
     - www.xiaohongshu.com
     - tianshu.qq.com
     - h5.qzone.qq.com
-    - "*.googlevideo.com"
     - youtubei.googleapis.com
     - img.meituan.net
     - s3plus.meituan.net
@@ -1670,12 +1669,6 @@ http:
       require-body: true
       binary-mode: true
       argument: '{"blockUpload":true,"blockShorts":true,"blockImmersive":true,"captionLang":"zh-Hans","debug":false}'
-    - match: "^https?:\\/\\/[\\w-]+\\.googlevideo\\.com\\/initplayback.+&ack.*"
-      name: loon_youtube_remove_ads_02
-      type: request
-      require-body: true
-      binary-mode: true
-      argument: '{"captionLang":"zh-Hans"}'
     - match: "^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/log_event"
       name: loon_youtube_remove_ads_02
       type: request
@@ -3054,4 +3047,4 @@ script-providers:
   bilibili-webpage:
     url: https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/webpage.bilibili.js
     interval: 86400
-date: '2026-10-24 10:23:40'
+date: '2026-10-25 00:56:07'

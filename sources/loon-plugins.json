@@ -144,7 +144,13 @@
       "blockImmersive": true,
       "captionLang": "zh-Hans",
       "debug": false
-    }
+    },
+    "drop_mitm": [
+      "*.googlevideo.com"
+    ],
+    "drop_scripts": [
+      "googlevideo"
+    ]
   },
   {
     "name": "番茄小说去广告",
