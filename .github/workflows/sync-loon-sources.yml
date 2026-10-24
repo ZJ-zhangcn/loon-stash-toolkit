@@ -28,12 +28,14 @@ jobs:
         run: pip install pyyaml
       - name: Convert sources and rebuild aggregate
         run: |
-          python -m tools.sync_sources
-          ruby tools/generate_aggregate.rb
+          set -o pipefail
+          python -m tools.sync_sources 2>&1 | tee /tmp/sync.log
+          ruby tools/generate_aggregate.rb 2>&1 | tee -a /tmp/sync.log
       - name: Validate generated overrides
         run: |
-          python -m unittest discover -s tests -v
-          python tools/lint_override.py
+          set -o pipefail
+          python -m unittest discover -s tests -v 2>&1 | tee -a /tmp/sync.log
+          python tools/lint_override.py 2>&1 | tee -a /tmp/sync.log
           git diff --check
       - name: Detect changes
         id: changes
@@ -51,20 +53,17 @@ jobs:
           git add -A
           git commit -m "chore: sync upstream Loon plugins"
           git push origin HEAD:main
-
-  notify-failure:
-    needs: sync
-    if: failure()
-    runs-on: ubuntu-latest
-    steps:
-      - name: Push failure notice to Telegram
+      - name: Notify Telegram on failure
+        if: failure()
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          text="⚠️ Loon 同步失败：${{ github.repository }}（${{ github.ref_name }}）
-          $RUN_URL"
+          detail=$(tail -n 8 /tmp/sync.log 2>/dev/null | sed 's/^/  /')
+          text="⚠️ Loon 同步失败（未推送，线上保持旧版）
+          ${detail}
+          ${RUN_URL}"
           curl -fsS -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
             --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
             --data-urlencode "disable_web_page_preview=true" \

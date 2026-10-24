@@ -92,6 +92,26 @@ class LintOverrideTests(unittest.TestCase):
         )
         self.assertTrue(errors)
 
+    def test_rejects_unknown_rule_type(self) -> None:
+        errors = self._check(
+            "name: t\n"
+            "rules:\n"
+            "  - MAGIC-RULE,b.com,DIRECT\n"
+        )
+        self.assertTrue(any("未知规则类型" in error for error in errors), errors)
+
+    def test_accepts_official_rule_types(self) -> None:
+        self.assertEqual(
+            self._check(
+                "name: t\n"
+                "rules:\n"
+                "  - DOMAIN,a.com,DIRECT\n"
+                "  - IP-CIDR,1.2.3.0/24,REJECT\n"
+                "  - URL-REGEX,^https://x/,DIRECT\n"
+            ),
+            [],
+        )
+
     def test_repository_overrides_are_clean(self) -> None:
         failures = {
             path.name: check(str(path))

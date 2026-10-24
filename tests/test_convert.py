@@ -434,5 +434,33 @@ class JqCommentTests(unittest.TestCase):
         self.assertIn('"a\\"#b"', _flatten_jq(source))
 
 
+class RuleTypeTests(unittest.TestCase):
+    """未知规则类型不能自动转换：跳过并留 warning，由人工确认。"""
+
+    def test_unknown_rule_type_is_skipped_with_warning(self) -> None:
+        source = (
+            "#!name=测试\n#!desc=x\n#!author=a\n#!homepage=https://x\n"
+            "#!icon=https://x/i.png\n#!category=测试\n"
+            "[Rule]\n"
+            "DOMAIN, a.com, DIRECT\n"
+            "MAGIC-RULE, b.com, DIRECT\n"
+            "IP-CIDR, 1.2.3.0/24, REJECT\n"
+        )
+        document = parse_loon(source)
+        self.assertEqual(
+            document.rules, ["DOMAIN,a.com,DIRECT", "IP-CIDR,1.2.3.0/24,REJECT"]
+        )
+        self.assertTrue(any("MAGIC-RULE" in w for w in document.warnings), document.warnings)
+
+    def test_known_rule_types_survive(self) -> None:
+        for rule_type in ("DOMAIN", "DOMAIN-SUFFIX", "IP-CIDR6", "URL-REGEX", "AND"):
+            document = parse_loon(
+                "#!name=测试\n#!desc=x\n#!author=a\n#!homepage=https://x\n"
+                f"#!icon=https://x/i.png\n#!category=测试\n[Rule]\n{rule_type}, v, DIRECT\n"
+            )
+            self.assertEqual(document.warnings, [], rule_type)
+            self.assertEqual(len(document.rules), 1, rule_type)
+
+
 if __name__ == "__main__":
     unittest.main()

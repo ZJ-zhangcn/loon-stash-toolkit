@@ -11,8 +11,12 @@ import re
 import shutil
 import subprocess
 import sys
+from pathlib import Path
 
 import yaml
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from tools.convert import STASH_RULE_TYPES  # noqa: E402
 
 URL_ACTIONS = {"transparent", "302", "307", "reject", "reject-200", "reject-img",
                "reject-dict", "reject-array"}
@@ -122,6 +126,23 @@ def check(path: str) -> list[str]:
             if result.returncode:
                 message = result.stderr.strip().splitlines()[0] if result.stderr else "unknown"
                 errors.append(f"http.body-rewrite[{index}] jq 编译失败: {message[:140]}")
+
+    # 规则类型必须在 Stash 官方白名单内，未知类型不能静默放行
+    rules = doc.get("rules") or []
+    if not isinstance(rules, list):
+        errors.append("rules 不是数组")
+        rules = []
+    for index, rule in enumerate(rules, 1):
+        if not isinstance(rule, str):
+            errors.append(f"rules[{index}] 不是字符串")
+            continue
+        rule_type = rule.split(",", 1)[0].strip().upper()
+        if rule_type not in STASH_RULE_TYPES:
+            errors.append(
+                f"rules[{index}] 未知规则类型 {rule_type!r}，需人工确认: {rule[:90]}"
+            )
+        elif "," not in rule:
+            errors.append(f"rules[{index}] 缺少策略: {rule[:90]}")
 
     for index, script in enumerate(http.get("script") or [], 1):
         if not isinstance(script, dict):

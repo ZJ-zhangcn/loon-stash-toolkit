@@ -33,6 +33,36 @@ STASH_LIST_KEYS = {
     "body-rewrite": "body_rewrite",
 }
 
+# Stash 官方规则类型（https://stash.wiki/en/rules/rule-types）。
+# 不在这张表里的类型说明转换器没有把握，必须跳过并提醒人工确认，
+# 绝不猜测输出——猜错的规则会静默失效，甚至让整层覆写加载失败。
+STASH_RULE_TYPES = {
+    "DOMAIN",
+    "DOMAIN-SUFFIX",
+    "DOMAIN-KEYWORD",
+    "DOMAIN-WILDCARD",
+    "DOMAIN-REGEX",
+    "GEOIP",
+    "IP-ASN",
+    "IP-CIDR",
+    "IP-CIDR6",
+    "NETWORK",
+    "PROTOCOL",
+    "DST-PORT",
+    "SRC-IP",
+    "SRC-PORT",
+    "RULE-SET",
+    "GEOSITE",
+    "PROCESS-NAME",
+    "PROCESS-PATH",
+    "SCRIPT",
+    "AND",
+    "OR",
+    "NOT",
+    "USER-AGENT",
+    "URL-REGEX",
+}
+
 METADATA_KEYS = (
     "name",
     "desc",
@@ -861,7 +891,13 @@ def _normalize_loon_rule(line: str) -> str:
     """Loon 允许 `DOMAIN, x, PROXY` 这种带空格的写法，Stash 只认紧凑格式。"""
     rule = re.sub(r"\s*,\s*", ",", line.strip())
     # Loon 的 PROXY 是「默认策略」，Stash 没有同名出站，落地为 DIRECT
-    return re.sub(r",PROXY$", ",DIRECT", rule)
+    rule = re.sub(r",PROXY$", ",DIRECT", rule)
+    rule_type = rule.split(",", 1)[0].upper()
+    if rule_type not in STASH_RULE_TYPES:
+        raise ValueError(
+            f"unsupported Loon rule type {rule_type!r}，已跳过待人工确认: {line}"
+        )
+    return rule
 
 
 def parse_loon(
@@ -906,7 +942,11 @@ def parse_loon(
             continue
         if section in LOON_SCRIPT_SECTIONS:
             if section == "[RULE]":
-                line = _normalize_loon_rule(line)
+                try:
+                    line = _normalize_loon_rule(line)
+                except ValueError as exc:
+                    document.warnings.append(str(exc))
+                    continue
             getattr(document, LOON_SCRIPT_SECTIONS[section]).append(line)
             continue
         if section == "[SCRIPT]":
