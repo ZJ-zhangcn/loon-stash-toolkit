@@ -53,7 +53,11 @@ payloads.each_key { |name| result["script-providers"][name].delete("payload") }
 
 output_path = File.join(ROOT, "stash/Kelee_All.stoverride")
 existing = YAML.safe_load(File.read(output_path)) if File.file?(output_path)
-result["date"] = if existing.is_a?(Hash) && existing.reject { |key, _| key == "date" } == result
+# 比较时两边都忽略 date 和 payload：payload 已从 result 摘出，稍后才写回文件
+existing_cmp = existing.is_a?(Hash) ? Marshal.load(Marshal.dump(existing)) : nil
+(existing_cmp["script-providers"] || {}).each_value { |p| p.delete("payload") } if existing_cmp
+result["date"] = if existing_cmp &&
+                    existing_cmp.reject { |key, _| key == "date" } == result.reject { |key, _| key == "date" }
                    existing["date"]
                  else
                    Time.now.strftime("%Y-%m-%d %H:%M:%S")
