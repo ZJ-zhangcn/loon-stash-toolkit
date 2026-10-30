@@ -4,10 +4,11 @@ import json
 import tempfile
 import unittest
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
+from urllib.error import URLError
 
 from tools.convert import parse_stash
-from tools.sync_sources import convert_source, source_fetch_url, sync_sources
+from tools.sync_sources import convert_source, fetch_source, source_fetch_url, sync_sources
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -39,6 +40,51 @@ class SyncSourcesTests(unittest.TestCase):
         )
         external = "https://github.com/fmz200/wool_scripts/raw/main/example.lpx"
         self.assertEqual(source_fetch_url(external), external)
+
+    def test_fetch_source_falls_back_to_the_direct_url(self) -> None:
+        response = MagicMock()
+        response.read.return_value = b"#!name=Example"
+        response.__enter__.return_value = response
+        with patch(
+            "tools.sync_sources.urlopen",
+            side_effect=[URLError("502"), response],
+        ) as urlopen:
+            self.assertEqual(
+                fetch_source("https://kelee.one/Tool/Loon/Lpx/Example.lpx"),
+                "#!name=Example",
+            )
+        self.assertEqual(
+            [call.args[0].full_url for call in urlopen.call_args_list],
+            [
+                "https://git.repcz.link/kelee.one/Tool/Loon/Lpx/Example.lpx",
+                "https://kelee.one/Tool/Loon/Lpx/Example.lpx",
+            ],
+        )
+
+    def test_sync_keeps_previous_override_when_source_is_unavailable(self) -> None:
+        with tempfile.TemporaryDirectory() as temporary_directory:
+            root = Path(temporary_directory)
+            (root / "sources").mkdir()
+            (root / "stash").mkdir()
+            mapping = [{
+                "name": "Example",
+                "source": "https://example.com/Example.lpx",
+                "output": "Example.stoverride",
+            }]
+            (root / "sources" / "loon-plugins.json").write_text(
+                json.dumps(mapping), encoding="utf-8"
+            )
+            output = root / "stash" / "Example.stoverride"
+            output.write_text("name: \"Example\"\n", encoding="utf-8")
+
+            with patch("tools.sync_sources.fetch_source", side_effect=RuntimeError("down")):
+                self.assertEqual(sync_sources(root), [])
+            self.assertEqual(output.read_text(encoding="utf-8"), "name: \"Example\"\n")
+
+            output.unlink()
+            with patch("tools.sync_sources.fetch_source", side_effect=RuntimeError("down")):
+                with self.assertRaisesRegex(RuntimeError, "down"):
+                    sync_sources(root)
 
     def test_kelee_bilibili_override_has_no_header_rewrite(self) -> None:
         """header-rewrite 曾让 kelee 哔哩哔哩覆写加载后所有覆写脚本失效。"""

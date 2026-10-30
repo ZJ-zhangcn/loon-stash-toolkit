@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 from pathlib import Path
 from typing import Any
@@ -23,14 +24,23 @@ def source_fetch_url(source_url: str) -> str:
     return source_url
 
 
+def warn(message: str) -> None:
+    print(f"::warning::{message}" if os.environ.get("GITHUB_ACTIONS") else f"warning: {message}")
+
+
 def fetch_source(source_url: str) -> str:
-    fetch_url = source_fetch_url(source_url)
-    request = Request(fetch_url, headers={"User-Agent": "loon-stash-toolkit-source-sync/1.0"})
-    try:
-        with urlopen(request, timeout=30) as response:
-            return response.read().decode("utf-8-sig")
-    except (OSError, UnicodeError) as exc:
-        raise RuntimeError(f"failed to fetch {source_url} via {fetch_url}: {exc}") from exc
+    fetch_urls = [source_fetch_url(source_url)]
+    if source_url not in fetch_urls:
+        fetch_urls.append(source_url)
+    errors: list[str] = []
+    for fetch_url in fetch_urls:
+        request = Request(fetch_url, headers={"User-Agent": "loon-stash-toolkit-source-sync/1.0"})
+        try:
+            with urlopen(request, timeout=30) as response:
+                return response.read().decode("utf-8-sig")
+        except (OSError, UnicodeError) as exc:
+            errors.append(f"{fetch_url}: {exc}")
+    raise RuntimeError(f"failed to fetch {source_url}: {'; '.join(errors)}")
 
 
 def inline_jq_files(source_text: str, source_url: str) -> str:
@@ -136,12 +146,22 @@ def inherit_payloads(path: Path, output: str) -> str:
 def sync_sources(root: Path = ROOT, dry_run: bool = False) -> list[str]:
     mappings = json.loads((root / "sources" / "loon-plugins.json").read_text(encoding="utf-8"))
     generated: list[tuple[Path, str]] = []
+    unavailable: list[str] = []
     for item in mappings:
         output_name = item["output"]
         if Path(output_name).name != output_name or not output_name.endswith(".stoverride"):
             raise ValueError(f"invalid output filename in source mapping: {output_name!r}")
-        source_text = fetch_source(item["source"])
         output_path = root / "stash" / output_name
+        try:
+            source_text = fetch_source(item["source"])
+        except RuntimeError as exc:
+            # 上游偶尔整体不可达（域名/DNS、镜像同时故障）。保留上次生成的文件，
+            # 等下次定时任务再同步，别让一个来源拖垮整批覆写。
+            if not output_path.is_file():
+                raise
+            unavailable.append(output_name)
+            warn(f"keeping previous {output_name}: {exc}")
+            continue
         generated.append(
             (
                 output_path,
@@ -160,6 +180,8 @@ def sync_sources(root: Path = ROOT, dry_run: bool = False) -> list[str]:
             path.write_text(output, encoding="utf-8", newline="\n")
     if not changed:
         print("No generated overrides changed.")
+    if unavailable:
+        warn(f"{len(unavailable)} source(s) unavailable, kept previous overrides: {', '.join(unavailable)}")
     return [str(path.relative_to(root)) for path, _ in changed]
 
 
