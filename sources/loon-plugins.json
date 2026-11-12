@@ -153,9 +153,8 @@
     ]
   },
   {
-    "name": "番茄小说广告屏蔽",
-    "source": "https://raw.githubusercontent.com/honue/rules/master/Loon/plugin/FanQieNovel.plugin",
-    "category": "去广告",
+    "name": "番茄小说去广告",
+    "source": "https://kelee.one/Tool/Loon/Lpx/DragonRead_remove_ads.lpx",
     "output": "DragonRead_remove_ads.stoverride"
   },
   {

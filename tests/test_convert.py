@@ -181,7 +181,7 @@ hostname = api.example.com
 
         self.assertEqual(len(mappings), 32)
         self.assertEqual(
-            sum("kelee.one" in item["source"] for item in mappings), 30
+            sum("kelee.one" in item["source"] for item in mappings), 31
         )
         meituan = next(
             item
