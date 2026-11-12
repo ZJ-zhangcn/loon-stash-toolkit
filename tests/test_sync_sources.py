@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -14,6 +15,12 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 class SyncSourcesTests(unittest.TestCase):
+    def setUp(self) -> None:
+        # 测试进程不是 CI 任务：别把 fixture 里演练的 "unavailable" 变成 workflow annotation。
+        patcher = patch.dict(os.environ, {"GITHUB_ACTIONS": ""})
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
     def test_manifest_keeps_youtube_options_and_meituan_category(self) -> None:
         root = Path(__file__).resolve().parents[1]
         mappings = json.loads(

@@ -51,7 +51,7 @@ def _action_of(value: str, legal: set[str], prefixes: tuple[str, ...]) -> str | 
 def check(path: str) -> list[str]:
     errors: list[str] = []
     try:
-        doc = yaml.safe_load(open(path, encoding="utf-8"))
+        doc = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
     except yaml.YAMLError as exc:
         return [f"YAML 解析失败: {exc}"]
     if not isinstance(doc, dict):
