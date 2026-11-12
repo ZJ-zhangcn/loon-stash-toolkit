@@ -97,6 +97,13 @@ def check(path: str) -> list[str]:
                 tail = value.rsplit(None, 1)[-1]
                 if tail not in URL_ACTIONS:
                     errors.append(f"http.{section}[{index}] 非法动作 {tail!r}: {value[:80]}")
+                elif tail.startswith("reject"):
+                    # reject 类动作前必须是 `-` 占位；Loon 的 `_` 原样留下会被 Stash 忽略
+                    placeholder = value.split()[-2] if len(value.split()) >= 3 else ""
+                    if placeholder != "-":
+                        errors.append(
+                            f"http.{section}[{index}] reject 前缺少 `-` 占位: {value[:80]}"
+                        )
                 continue
             # header/body 段的动作必须紧跟在 URL 正则之后
             found = _action_of(value, legal, prefixes)

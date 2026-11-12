@@ -20,6 +20,22 @@ from tools.convert import (  # noqa: E402
 
 
 class ConversionTests(unittest.TestCase):
+    def test_loon_url_rewrite_placeholder_and_wildcard_domain(self) -> None:
+        source = (
+            "#!name=Wildcard\n"
+            "[URL Rewrite]\n"
+            r"^https?:\/\/ad\.example\.com\/api\/ad\/ _ reject" "\n"
+            "[Rule]\n"
+            "DOMAIN,*novelapp.ixigua.com,REJECT\n"
+        )
+        document = parse_loon(source)
+        converted = convert_text("loon-to-stash", source, "wildcard")
+        self.assertEqual(
+            parse_stash(converted).url_rewrite,
+            [r"^https?:\/\/ad\.example\.com\/api\/ad\/ - reject"],
+        )
+        self.assertEqual(document.rules, ["DOMAIN-WILDCARD,*novelapp.ixigua.com,REJECT"])
+
     def test_loon_redirect_action_maps_to_stash_url_rewrite(self) -> None:
         source = r"""#!name=Redirect
 [Rewrite]
@@ -165,7 +181,7 @@ hostname = api.example.com
 
         self.assertEqual(len(mappings), 32)
         self.assertEqual(
-            sum("kelee.one" in item["source"] for item in mappings), 31
+            sum("kelee.one" in item["source"] for item in mappings), 30
         )
         meituan = next(
             item

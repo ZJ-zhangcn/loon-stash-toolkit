@@ -902,6 +902,14 @@ def _as_loon_url_rewrite(line: str) -> str | None:
     return f"{pattern} {target} {code}"
 
 
+def _stash_url_rewrite(value: str) -> str:
+    """Loon 用 `_` 占位表示「URL 不变」，Stash 认 `-`；原样带过去会被忽略。"""
+    parts = value.split()
+    if len(parts) >= 2 and parts[1] == "_":
+        parts[1] = "-"
+    return " ".join(parts)
+
+
 def _normalize_loon_rule(line: str) -> str:
     """Loon 允许 `DOMAIN, x, PROXY` 这种带空格的写法，Stash 只认紧凑格式。"""
     rule = re.sub(r"\s*,\s*", ",", line.strip())
@@ -919,6 +927,11 @@ def _normalize_loon_rule(line: str) -> str:
         raise ValueError(
             f"unsupported Loon rule type {rule_type!r}，已跳过待人工确认: {line}"
         )
+    # Loon 允许 DOMAIN 里写 `*novelapp.ixigua.com`；Stash 的 DOMAIN 只认精确域名
+    parts = rule.split(",")
+    if rule_type == "DOMAIN" and len(parts) > 1 and ("*" in parts[1] or "?" in parts[1]):
+        parts[0] = "DOMAIN-WILDCARD"
+        rule = ",".join(parts)
     return rule
 
 
@@ -1057,7 +1070,7 @@ def to_stash(document: Document, stem: str = "plugin") -> str:
         output.append("http:")
         for key, values in (
             ("mitm", document.mitm),
-            ("url-rewrite", document.url_rewrite),
+            ("url-rewrite", [_stash_url_rewrite(value) for value in document.url_rewrite]),
             ("header-rewrite", document.header_rewrite),
             (
                 "body-rewrite",
