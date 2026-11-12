@@ -5,6 +5,7 @@ author: "奶思"
 homepage: "https://github.com/fmz200/wool_scripts"
 icon: "https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/gif/naisi-01.gif"
 category: "去广告"
+date: "2026-11-11 21:17:23"
 http:
   mitm:
     - "img.meituan.net"
