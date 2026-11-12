@@ -57,7 +57,7 @@ def inline(path: Path, cache: dict[str, str | None]) -> int:
     rebuilt: list[str] = []
     for entry in entries:
         m = re.match(
-            r'^(  \"?[\w.\- ]+\"?:\n)    url: "(?P<url>https://[^"]+\.js)"\n    interval: (?P<interval>\d+)\n',
+            r'^(  \"?[\w.\- ]+\"?:\n)    url: "?(?P<url>https://[^"\n]+?)"?\n    interval: (?P<interval>\d+)\n',
             entry,
         )
         if not m:

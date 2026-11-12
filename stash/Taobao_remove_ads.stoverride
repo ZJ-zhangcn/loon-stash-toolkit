@@ -159,3 +159,13 @@ script-providers:
       }
 
       $done({ body });
+        default:
+          $done({});
+      }
+
+      $done({ body });
+        default:
+          $done({});
+      }
+
+      $done({ body });
