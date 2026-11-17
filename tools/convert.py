@@ -821,6 +821,42 @@ def _parse_loon_argument(line: str) -> tuple[str, Any]:
     return name.strip(), _argument_value(fields[1])
 
 
+def _loon_argument_schema(line: str) -> tuple[str, dict[str, Any]]:
+    """把 Loon 的 [Argument] 定义翻成 Stash 的 arguments 项。
+
+    Loon 写法：`switch, false, true, tag=..., desc=...` / `select, "a", "b", tag=...`。
+    Loon 没有 Stash 的默认值标记：第一个值就是默认值。
+    """
+    if "=" not in line:
+        raise ValueError(f"invalid Loon argument: {line}")
+    name, definition = line.split("=", 1)
+    name = name.strip()
+    meta = _parse_loon_options(definition)
+    head = re.split(r",\s*(?=[A-Za-z][A-Za-z0-9_-]*=)", definition)[0]
+    fields = [field.strip() for field in next(csv.reader([head], skipinitialspace=True))]
+    kind = fields[0].lower() if fields else "input"
+
+    spec: dict[str, Any] = {"type": "switch" if kind == "switch" else kind}
+    if spec["type"] not in ARGUMENT_TYPES:
+        spec["type"] = "input"
+    if meta.get("tag"):
+        spec["title"] = meta["tag"]
+    if meta.get("desc"):
+        spec["description"] = meta["desc"]
+
+    values = [_argument_value(field) for field in fields[1:] if field]
+    if spec["type"] == "switch":
+        spec["default"] = bool(values[0]) if values else False
+    elif spec["type"] == "select":
+        if not values:
+            raise ValueError(f"Loon select argument has no options: {line}")
+        spec["options"] = values
+        spec["default"] = values[0]
+    else:
+        spec["default"] = values[0] if values else ""
+    return name, spec
+
+
 def _parse_loon_options(text: str) -> dict[str, str]:
     options: dict[str, str] = {}
     for part in re.split(r",\s*(?=[A-Za-z][A-Za-z0-9_-]*=)", text):
@@ -985,6 +1021,7 @@ def parse_loon(
     document = Document()
     section: str | None = None
     argument_defaults: dict[str, Any] = {}
+    argument_schema: dict[str, dict[str, Any]] = {}
     argument_values = argument_values or {}
     lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
     for original in lines:
@@ -1006,6 +1043,13 @@ def parse_loon(
             try:
                 name, value = _parse_loon_argument(line)
                 argument_defaults[name] = value
+                if name not in argument_schema:
+                    spec = _loon_argument_schema(line)[1]
+                    # 转换清单里的 arguments 就是"我选的值"，让它成为默认值，
+                    # 否则 schema 显示上游默认、实际行为却是烘死的值。
+                    if name in argument_values:
+                        spec["default"] = argument_values[name]
+                    argument_schema[name] = spec
             except (ValueError, json.JSONDecodeError) as exc:
                 document.warnings.append(str(exc))
             continue
@@ -1057,6 +1101,8 @@ def parse_loon(
             document.warnings.append(f"ignored content outside a section: {line}")
             continue
         document.warnings.append(f"ignored unsupported Loon section line: {line}")
+    if argument_schema and not document.arguments_schema:
+        document.arguments_schema = argument_schema
     return document
 
 

@@ -151,55 +151,6 @@
     "drop_scripts": [
       "googlevideo"
     ],
-    "arguments_schema": {
-      "blockUpload": {
-        "type": "switch",
-        "title": "隐藏上传按钮",
-        "default": true
-      },
-      "blockShorts": {
-        "type": "switch",
-        "title": "隐藏短片",
-        "default": true
-      },
-      "blockImmersive": {
-        "type": "switch",
-        "title": "隐藏沉浸式推荐",
-        "default": true
-      },
-      "captionLang": {
-        "type": "select",
-        "title": "字幕语言",
-        "default": "zh-Hans",
-        "options": [
-          {
-            "value": "zh-Hans",
-            "label": "简体中文"
-          },
-          {
-            "value": "zh-Hant",
-            "label": "繁體中文"
-          },
-          {
-            "value": "en",
-            "label": "英语"
-          },
-          {
-            "value": "ja",
-            "label": "日语"
-          },
-          {
-            "value": "ko",
-            "label": "韩语"
-          }
-        ]
-      },
-      "debug": {
-        "type": "switch",
-        "title": "调试日志",
-        "default": false
-      }
-    },
     "notes": [
       "需 MitM 并信任证书；改参数或更新覆写后，彻底退出 YouTube 再打开。"
     ]
@@ -227,44 +178,6 @@
       "logLevel": "off"
     },
     "drop_header_rewrite": true,
-    "arguments_schema": {
-      "displayUpList": {
-        "type": "select",
-        "title": "动态·最常访问",
-        "default": "show",
-        "options": [
-          {
-            "value": "show",
-            "label": "显示"
-          },
-          {
-            "value": "hide",
-            "label": "隐藏"
-          }
-        ]
-      },
-      "purifyComment": {
-        "type": "switch",
-        "title": "过滤置顶评论广告",
-        "default": true
-      },
-      "optimizeRequest": {
-        "type": "switch",
-        "title": "评论区请求优化",
-        "default": true
-      },
-      "sponsorBlock": {
-        "type": "switch",
-        "title": "空降助手",
-        "default": true
-      },
-      "logLevel": {
-        "type": "input",
-        "title": "日志级别",
-        "description": "off / error / debug",
-        "default": "off"
-      }
-    },
     "notes": [
       "需 MitM 并信任证书；更新覆写后彻底退出 B 站再打开。"
     ]

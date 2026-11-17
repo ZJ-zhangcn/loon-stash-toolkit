@@ -18,30 +18,47 @@ arguments-version: 1
 arguments:
   displayUpList:
     type: select
-    title: "动态·最常访问"
+    title: "[动态]中[最常访问]的显示方式"
+    description: "auto：仅当列表中存在直播状态时显示；show：始终显示；hide：始终隐藏。"
     default: "show"
     options:
       - value: "show"
-        label: "显示"
+        label: "show"
       - value: "hide"
-        label: "隐藏"
+        label: "hide"
+      - value: "auto"
+        label: "auto"
   purifyComment:
     type: switch
-    title: "过滤置顶评论广告"
+    title: "移除评论区置顶广告"
+    description: "移除评论区置顶广告"
     default: true
   optimizeRequest:
     type: switch
-    title: "评论区请求优化"
+    title: "优化评论区加载异常"
+    description: "尝试解决评论区加载异常的问题"
     default: true
   sponsorBlock:
     type: switch
     title: "空降助手"
+    description: "用于跳过视频中的广告"
     default: true
   logLevel:
-    type: input
-    title: "日志级别"
-    description: "off / error / debug"
+    type: select
+    title: "日志等级"
+    description: "脚本的日志输出等级"
     default: "off"
+    options:
+      - value: "off"
+        label: "off"
+      - value: "error"
+        label: "error"
+      - value: "warn"
+        label: "warn"
+      - value: "info"
+        label: "info"
+      - value: "debug"
+        label: "debug"
 rules:
   - "DOMAIN,bsbsb.top,DIRECT"
   - "DOMAIN,api.biliapi.com,REJECT"

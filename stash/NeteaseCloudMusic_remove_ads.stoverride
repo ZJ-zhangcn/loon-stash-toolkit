@@ -10,6 +10,56 @@ icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px
 category: "去广告"
 date: "2026-10-02 13:57:49"
 version: "lp-a3117ca5"
+arguments-version: 1
+arguments:
+  MY:
+    type: switch
+    title: "[隐藏底栏]漫游标签"
+    default: false
+  DT:
+    type: switch
+    title: "[隐藏底部]笔记标签"
+    default: false
+  FX:
+    type: switch
+    title: "[隐藏底部]发现标签"
+    default: false
+  PRGG:
+    type: switch
+    title: "[隐藏首页]问候语"
+    default: false
+  PRRK:
+    type: switch
+    title: "[隐藏首页]排行榜"
+    default: false
+  PRDRD:
+    type: switch
+    title: "[隐藏首页]每日推荐"
+    default: false
+  PRSCVPT:
+    type: switch
+    title: "[隐藏首页]推荐歌单"
+    default: false
+  PRST:
+    type: switch
+    title: "[隐藏首页]最近常听"
+    default: false
+  PRRR:
+    type: switch
+    title: "[隐藏首页]雷达歌单"
+    default: false
+  HMPR:
+    type: switch
+    title: "[隐藏首页]音乐合伙人"
+    default: false
+  PRMST:
+    type: switch
+    title: "[隐藏首页]推荐专属歌单"
+    default: false
+  PRCN:
+    type: switch
+    title: "[隐藏首页]你的专属歌单"
+    default: false
 rules:
   - "DOMAIN,iadmat.nosdn.127.net,REJECT"
   - "DOMAIN,iadmatapk.nosdn.127.net,REJECT"
@@ -50,14 +100,14 @@ http:
       require-body: true
       binary-mode: true
       timeout: 20
-      argument: "{\"PRGG\":false,\"PRRK\":false,\"PRDRD\":false,\"PRSCVPT\":false,\"PRST\":false,\"PRRR\":false,\"HMPR\":false,\"PRMST\":false,\"PRCN\":false}"
+      argument: "{\"PRGG\":${args.PRGG|json},\"PRRK\":${args.PRRK|json},\"PRDRD\":${args.PRDRD|json},\"PRSCVPT\":${args.PRSCVPT|json},\"PRST\":${args.PRST|json},\"PRRR\":${args.PRRR|json},\"HMPR\":${args.HMPR|json},\"PRMST\":${args.PRMST|json},\"PRCN\":${args.PRCN|json}}"
     - match: "^https?:\\/\\/interface\\d?\\.music\\.163\\.com\\/eapi\\/link\\/home\\/framework\\/tab"
       name: "loon_neteasecloudmusic_remove_ads_01"
       type: "response"
       require-body: true
       binary-mode: true
       timeout: 20
-      argument: "{\"MY\":false,\"DT\":false,\"FX\":false}"
+      argument: "{\"MY\":${args.MY|json},\"DT\":${args.DT|json},\"FX\":${args.FX|json}}"
     - match: "^https?:\\/\\/interface\\d?\\.music\\.163\\.com\\/eapi\\/link\\/page\\/discovery\\/resource\\/show"
       name: "loon_neteasecloudmusic_remove_ads_01"
       type: "response"

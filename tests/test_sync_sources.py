@@ -124,10 +124,8 @@ response if ${url} ~= /^https:\/\/youtubei\.googleapis\.com/i then script("https
 
         converted = parse_stash(convert_source(item, source))
         self.assertEqual(converted.metadata["category"], "视频")
-        self.assertEqual(
-            json.loads(converted.scripts[0].argument or "{}"),
-            {"blockUpload": True},
-        )
+        self.assertEqual(converted.arguments_schema["blockUpload"]["default"], True)
+        self.assertIn("${args.blockUpload|json}", converted.scripts[0].argument or "")
         self.assertEqual(
             list(converted.script_providers.values())[0]["url"],
             "https://git.repcz.link/kelee.one/Resource/JavaScript/example.js",

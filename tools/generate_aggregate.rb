@@ -18,7 +18,12 @@ def merge_values(target, source, path = "")
     elsif value.is_a?(Array)
       target[key] ||= []
       raise "type conflict at #{next_path}" unless target[key].is_a?(Array)
-      target[key].concat(value)
+      if next_path.start_with?("arguments.")
+        # 两个覆写可能声明同一个参数：选项去重，否则客户端里会出现重复下拉项
+        value.each { |item| target[key] << item unless target[key].include?(item) }
+      else
+        target[key].concat(value)
+      end
     elsif !target.key?(key)
       target[key] = value
     elsif target[key] != value

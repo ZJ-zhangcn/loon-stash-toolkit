@@ -84,7 +84,8 @@ def convert_source(item: dict[str, Any], source_text: str) -> str:
         inline_jq_files(source_text, item["source"]),
         argument_values=item.get("arguments"),
     )
-    document.arguments_schema = dict(item.get("arguments_schema") or {})
+    if item.get("arguments_schema"):
+        document.arguments_schema = dict(item["arguments_schema"])
     if document.warnings:
         raise ValueError(f"{item['source']} conversion warnings: {document.warnings}")
     if document.metadata.get("name") != item["name"]:

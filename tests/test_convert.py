@@ -141,12 +141,12 @@ hostname = api.example.com
             "https://git.repcz.link/kelee.one/Resource/JavaScript/example.js",
         )
         self.assertEqual(
-            json.loads(document.scripts[0].argument),
+            {name: spec["default"] for name, spec in document.arguments_schema.items()},
             {"blockUpload": True, "captionLang": "zh-Hans"},
         )
-        self.assertEqual(
-            json.loads(document.scripts[1].argument), {"captionLang": "zh-Hans"}
-        )
+        self.assertIn("${args.blockUpload|json}", document.scripts[0].argument or "")
+        self.assertIn("${args.captionLang|json}", document.scripts[0].argument or "")
+        self.assertIn("${args.captionLang|json}", document.scripts[1].argument or "")
         self.assertEqual(document.mitm, ["api.example.com"])
         self.assertEqual(warnings, [])
 

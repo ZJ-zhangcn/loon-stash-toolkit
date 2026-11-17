@@ -17,33 +17,40 @@ arguments:
   blockUpload:
     type: switch
     title: "隐藏上传按钮"
+    description: "用于隐藏YouTube底栏的上传按钮"
     default: true
   blockShorts:
     type: switch
-    title: "隐藏短片"
+    title: "隐藏Shorts按钮"
+    description: "用于隐藏YouTube底栏的Shorts按钮"
     default: true
   blockImmersive:
     type: switch
-    title: "隐藏沉浸式推荐"
+    title: "隐藏选段按钮"
+    description: "用于隐藏YouTube Music底栏的选段按钮"
     default: true
   captionLang:
     type: select
-    title: "字幕语言"
+    title: "字幕翻译语言"
+    description: "需要把YouTube字幕翻译翻译为何种语言"
     default: "zh-Hans"
     options:
       - value: "zh-Hans"
-        label: "简体中文"
+        label: "zh-Hans"
       - value: "zh-Hant"
-        label: "繁體中文"
-      - value: "en"
-        label: "英语"
+        label: "zh-Hant"
       - value: "ja"
-        label: "日语"
+        label: "ja"
       - value: "ko"
-        label: "韩语"
+        label: "ko"
+      - value: "en"
+        label: "en"
+      - value: "off"
+        label: "off"
   debug:
     type: switch
-    title: "调试日志"
+    title: "启用调试模式"
+    description: "此插件的调试模式"
     default: false
 http:
   mitm:
