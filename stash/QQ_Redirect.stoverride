@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/QQ_Redirect.lpx
+# 上游 sha256: 2d2abfe97a3870de
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "QQ链接解锁"
 desc: |-
   解除QQ内访问非白名单之外的地址提示停止访问该页面的限制，并移除跟踪参数，使用前需要清除QQ的缓存数据。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/QQ.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-2d2abfe9"
 http:
   mitm:
     - "pingtas.qq.com"

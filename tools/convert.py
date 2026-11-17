@@ -100,6 +100,7 @@ class Document:
     scripts: list[ScriptRule] = field(default_factory=list)
     mocks: list[dict[str, Any]] = field(default_factory=list)
     script_providers: dict[str, dict[str, Any]] = field(default_factory=dict)
+    arguments_schema: dict[str, dict[str, Any]] = field(default_factory=dict)
     warnings: list[str] = field(default_factory=list)
 
 
@@ -372,6 +373,41 @@ def _skip_nested_block(lines: list[str], start: int, parent_indent: int) -> int:
     return index
 
 
+def _consume_arguments(
+    lines: list[str], start: int, indent: int = 2
+) -> tuple[int, dict[str, dict[str, Any]]]:
+    """读 Stash 的 arguments 块，只保留回写 Loon 需要的 type/default。"""
+    schema: dict[str, dict[str, Any]] = {}
+    index = start
+    current: str | None = None
+    while index < len(lines):
+        line = lines[index]
+        if _is_ignorable(line):
+            index += 1
+            continue
+        if _indent_of(line) < indent:
+            break
+        parsed = _parse_mapping(line)
+        if _indent_of(line) > indent:
+            if parsed and current is not None:
+                _, key, value = parsed
+                if key in {"type", "default"}:
+                    schema[current][key] = _parse_scalar(value)
+            index += 1
+            continue
+        if parsed:
+            current = parsed[1]
+            schema[current] = {}
+        index += 1
+
+    resolved: dict[str, dict[str, Any]] = {}
+    for name, spec in schema.items():
+        if spec.get("type") == "switch":
+            spec["default"] = _parse_bool(spec.get("default", "false"))
+        resolved[name] = spec
+    return index, resolved
+
+
 def parse_stash(text: str) -> Document:
     lines = text.replace("\r\n", "\n").replace("\r", "\n").split("\n")
     document = Document()
@@ -398,6 +434,14 @@ def parse_stash(text: str) -> Document:
                 value = _parse_scalar(raw_value)
                 index += 1
             document.metadata[key] = value
+            continue
+        if key == "arguments-version":
+            index += 1
+            continue
+        if key == "arguments":
+            if raw_value:
+                raise ValueError("inline arguments are not supported")
+            index, document.arguments_schema = _consume_arguments(lines, index + 1)
             continue
         if key == "rules":
             if raw_value:
@@ -1023,6 +1067,75 @@ def _script_name(stem: str, index: int) -> str:
     return f"loon_{slug}_{index:02d}"
 
 
+_ARGUMENT_MARKER = "@@args:{}@@"
+ARGUMENT_TYPES = ("input", "select", "switch")
+
+
+def _render_arguments(schema: dict[str, dict[str, Any]]) -> list[str]:
+    """按 Stash 3.7 的 arguments 语法输出参数块，让参数在客户端可调。"""
+    lines = ["arguments-version: 1", "arguments:"]
+    for name, spec in schema.items():
+        if not isinstance(spec, dict):
+            raise ValueError(f"argument {name!r} schema must be a mapping")
+        kind = spec.get("type", "input")
+        if kind not in ARGUMENT_TYPES:
+            raise ValueError(f"argument {name!r} has unsupported type {kind!r}")
+        lines.append(f"  {name}:")
+        lines.append(f"    type: {kind}")
+        for key in ("title", "description"):
+            if spec.get(key):
+                lines.append(f"    {key}: {_quote(spec[key])}")
+        if "default" in spec:
+            if kind == "switch":
+                lines.append(f"    default: {str(bool(spec['default'])).lower()}")
+            else:
+                lines.append(f"    default: {_quote(spec['default'])}")
+        if spec.get("required"):
+            lines.append("    required: true")
+        if kind == "select":
+            options = spec.get("options") or []
+            if not options:
+                raise ValueError(f"argument {name!r} is a select without options")
+            lines.append("    options:")
+            for option in options:
+                if isinstance(option, dict):
+                    value = option.get("value")
+                    label = option.get("label", value)
+                else:
+                    value = label = option
+                lines.append(f"      - value: {_quote(value)}")
+                lines.append(f"        label: {_quote(label)}")
+    return lines
+
+
+def _template_argument(argument: str, names: set[str]) -> str:
+    """把烘死的值换成 `${args.x|json}`，其余参数保持原样。"""
+    try:
+        data = json.loads(argument)
+    except json.JSONDecodeError:
+        return argument
+    if not isinstance(data, dict):
+        return argument
+    marked = {
+        key: (_ARGUMENT_MARKER.format(key) if key in names else value)
+        for key, value in data.items()
+    }
+    text = json.dumps(marked, ensure_ascii=False, separators=(",", ":"))
+    return re.sub(r'"@@args:([A-Za-z0-9_-]+)@@"', r"${args.\1|json}", text)
+
+
+def _unwrap_argument(argument: str, schema: dict[str, dict[str, Any]]) -> str:
+    """Loon 没有 arguments 机制：回退成 schema 里的默认值。"""
+    def replace(match: re.Match[str]) -> str:
+        name = match.group(1)
+        spec = schema.get(name) or {}
+        if "default" not in spec:
+            raise ValueError(f"argument {name!r} has no default to write back to Loon")
+        return json.dumps(spec["default"], ensure_ascii=False)
+
+    return re.sub(r"\$\{args\.([A-Za-z0-9_-]+)\|json\}", replace, argument)
+
+
 def to_stash(document: Document, stem: str = "plugin") -> str:
     output: list[str] = []
     metadata = dict(document.metadata)
@@ -1044,6 +1157,9 @@ def to_stash(document: Document, stem: str = "plugin") -> str:
     for key in ("date", "version"):
         if metadata.get(key):
             output.append(f"{key}: {_quote(metadata[key])}")
+
+    if document.arguments_schema:
+        output.extend(_render_arguments(document.arguments_schema))
 
     if document.rules:
         output.append("rules:")
@@ -1121,7 +1237,12 @@ def to_stash(document: Document, stem: str = "plugin") -> str:
             if script.timeout is not None:
                 output.append(f"      timeout: {script.timeout}")
             if script.argument:
-                output.append(f"      argument: {_quote(script.argument)}")
+                argument = script.argument
+                if document.arguments_schema:
+                    argument = _template_argument(
+                        argument, set(document.arguments_schema)
+                    )
+                output.append(f"      argument: {_quote(argument)}")
             providers[name] = {"url": script.url, "interval": 86400}
 
         if providers:
@@ -1179,7 +1300,10 @@ def to_loon(document: Document) -> str:
             if script.timeout is not None:
                 line += f", timeout={script.timeout}"
             if script.argument:
-                line += f", argument={script.argument}"
+                argument = script.argument
+                if "${args." in argument:
+                    argument = _unwrap_argument(argument, document.arguments_schema)
+                line += f", argument={argument}"
             if script.tag:
                 line += f", tag={script.tag}"
             output.append(line)

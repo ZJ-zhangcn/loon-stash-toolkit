@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/Walmart_remove_ads.lpx
+# 上游 sha256: 2eb276cce759d19d
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "沃尔玛去广告"
 desc: |-
   移除操作引导、商品详情页用户调研、搜索填充词和搜索发现，精简我的页面。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Walmart.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-2eb276cc"
 http:
   mitm:
     - "api-hyper.walmartmobile.cn"

@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/DragonRead_remove_ads.lpx
+# 上游 sha256: da052ba71baa5271
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "番茄小说去广告"
 desc: |-
   移除番茄小说开屏广告、移除文章底部和章末广告、移除听书页面广告、移除悬浮部件和底栏多余的福利标签。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/DragonRead.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-da052ba7"
 rules:
   - "DOMAIN,zlink.ugsdk.cn,REJECT"
   - "DOMAIN,mon.toutiaocloud.net,REJECT"

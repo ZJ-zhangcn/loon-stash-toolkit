@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/TXDocs_remove_ads.lpx
+# 上游 sha256: f3cda83f01122739
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "腾讯文档去广告"
 desc: |-
   移除开屏广告、首页横幅推广。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/TXDocs.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-f3cda83f"
 http:
   mitm:
     - "tianshu.qq.com"

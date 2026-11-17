@@ -315,11 +315,9 @@ hostname = api.example.com
                 self.assertIn(key, aggregate_mocks)
 
     def test_youtube_override_uses_previous_argument_values(self) -> None:
-        document = parse_stash(
-            (ROOT / "stash" / "YouTube_remove_ads.stoverride").read_text(
-                encoding="utf-8"
-            )
-        )
+        path = ROOT / "stash" / "YouTube_remove_ads.stoverride"
+        text = path.read_text(encoding="utf-8")
+        document = parse_stash(text)
         expected = {
             "blockUpload": True,
             "blockShorts": True,
@@ -327,10 +325,18 @@ hostname = api.example.com
             "captionLang": "zh-Hans",
             "debug": False,
         }
+        # 参数改成 Stash 原生 arguments 后，默认值必须和原先烘死的值一致
+        self.assertEqual(
+            {name: spec["default"] for name, spec in document.arguments_schema.items()},
+            expected,
+        )
         # initplayback 那条已按 Stash 兼容性移除，只剩 player 响应脚本和 log_event
         self.assertEqual(len(document.scripts), 2)
-        self.assertEqual(json.loads(document.scripts[0].argument or "{}"), expected)
-        self.assertEqual(json.loads(document.scripts[1].argument or "{}"), expected)
+        for script in document.scripts:
+            self.assertIn("${args.blockUpload|json}", script.argument or "")
+        # 回写 Loon 时模板要落回默认值
+        loon = convert_text("stash-to-loon", text, "YouTube_remove_ads")
+        self.assertIn('"blockUpload":true', loon.replace(" ", ""))
 
     def test_all_stash_overrides_convert_to_parseable_loon(self) -> None:
         for path in sorted((ROOT / "stash").glob("*.stoverride")):

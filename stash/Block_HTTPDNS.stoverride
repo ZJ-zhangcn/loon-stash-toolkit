@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/Block_HTTPDNS.lpx
+# 上游 sha256: 1565be1f81faba09
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "HTTPDNS拦截器"
 desc: |-
   此插件是所有去广告插件的依赖，拦截常见的HTTPDNS服务，以确保这些请求都能够在Loon的DNS框架下工作。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/Other_icon/120px/HTTPDNS.png"
 category: "去广告, 依赖"
 date: "2026-10-02 13:57:49"
+version: "lp-1565be1f"
 rules:
   - "DOMAIN-KEYWORD,httpdns,REJECT"
   - "DOMAIN-KEYWORD,httpsdns,REJECT"

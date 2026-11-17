@@ -1,3 +1,6 @@
+# 上游: https://github.com/fmz200/wool_scripts/raw/main/Loon/plugin/split/partM/Meituan-MeituanWaimai.lpx
+# 上游 sha256: 18d6094883e31086
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "美团 & 美团外卖"
 desc: |-
   某些APP要清除缓存或者重新安装拦截广告才会生效！
@@ -6,6 +9,7 @@ homepage: "https://github.com/fmz200/wool_scripts"
 icon: "https://raw.githubusercontent.com/fmz200/wool_scripts/main/icons/gif/naisi-01.gif"
 category: "去广告"
 date: "2026-11-11 21:17:23"
+version: "lp-18d60948"
 http:
   mitm:
     - "img.meituan.net"

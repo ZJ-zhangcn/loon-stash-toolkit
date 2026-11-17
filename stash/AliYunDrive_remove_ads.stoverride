@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/AliYunDrive_remove_ads.lpx
+# 上游 sha256: e95aa82e1d1f1b0e
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "阿里云盘去广告"
 desc: |-
   移除首页广告横幅、弹窗和顶部奖励。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/AliYunDrive.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-e95aa82e"
 rules:
   - "IP-CIDR,203.107.1.1/24,REJECT,no-resolve"
 http:

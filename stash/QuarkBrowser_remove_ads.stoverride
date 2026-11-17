@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/QuarkBrowser_remove_ads.lpx
+# 上游 sha256: b2f31d98c78c7075
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "夸克去广告"
 desc: |-
   移除阅读广告、各页面弹窗及横幅，精简我的页面。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/QuarkBrowser.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-b2f31d98"
 http:
   mitm:
     - "open-cms-api.quark.cn"

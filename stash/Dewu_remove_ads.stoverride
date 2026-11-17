@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/Dewu_remove_ads.lpx
+# 上游 sha256: 97b4948634a536e2
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "得物去广告"
 desc: |-
   移除开屏广告、弹窗、搜索词填充、热搜榜、猜你想搜、推荐关注、推荐信息流，精简消息中心和我的页面。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Dewu.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-97b49486"
 http:
   mitm:
     - "app.dewu.com"

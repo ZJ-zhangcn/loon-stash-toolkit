@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/SevenCat_remove_ads.lpx
+# 上游 sha256: 8e75409fbf42a604
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "七猫小说去广告"
 desc: |-
   移除大部分七猫小说广告，但受限于七猫小说自身对MitM和VPN状态的检测，部分页面广告无法移除。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/SevenCat.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-8e75409f"
 rules:
   - "DOMAIN,cdn-ad.wtzw.com,REJECT"
   - "DOMAIN,cdn-new-ad.wtzw.com,REJECT"

@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/QiDian_remove_ads.lpx
+# 上游 sha256: 73c6e2839aeb2761
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "起点读书去广告"
 desc: |-
   移除起点读书开屏广告、每日导读、各类弹窗、文末广告、搜索填充词，精简我的页面。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/QiDian.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-73c6e283"
 http:
   mitm:
     - "magev6.if.qidian.com"

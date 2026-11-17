@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/Google.lpx
+# 上游 sha256: e61f5138fa70598b
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "Google搜索重定向"
 desc: |-
   将Google搜索重定向至.com域名，如遇频繁跳转请禁用本插件。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Google.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-e61f5138"
 http:
   mitm:
     - "www.google.cn"

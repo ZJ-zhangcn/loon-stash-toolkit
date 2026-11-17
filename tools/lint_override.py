@@ -32,6 +32,8 @@ SCRIPT_FIELDS = {"name", "match", "type", "require-body", "timeout", "argument",
 SCRIPT_TYPES = {"request", "response"}
 SCRIPT_ENGINES = {"auto", "webkit", "jsc"}
 PROVIDER_FIELDS = {"url", "interval", "headers", "payload", "path"}
+ARGUMENT_FIELDS = {"type", "title", "description", "default", "required", "options"}
+ARGUMENT_TYPES = {"input", "select", "switch"}
 
 # Stash 解析超长 rewrite 单行会失败，并让整层覆写的脚本全部失效。
 # 实测 7.2 KB 正常、27 KB 必坏。转换器按 8 KB 切片留余量；lint 上限放到 9 KB，
@@ -59,6 +61,26 @@ def check(path: str) -> list[str]:
 
     providers = doc.get("script-providers") or {}
     http = doc.get("http") or {}
+    arguments = doc.get("arguments") or {}
+
+    # arguments 引用了没声明的参数时，Stash 会静默留空：脚本拿到 undefined 也不报错。
+    if arguments:
+        if doc.get("arguments-version") != 1:
+            errors.append("声明了 arguments 但缺少 arguments-version: 1")
+        if not isinstance(arguments, dict):
+            errors.append("arguments 不是映射")
+            arguments = {}
+        for name, spec in arguments.items():
+            if not isinstance(spec, dict):
+                errors.append(f"argument {name!r} 不是映射")
+                continue
+            unknown = set(spec) - ARGUMENT_FIELDS
+            if unknown:
+                errors.append(f"argument {name!r} 含未知字段 {sorted(unknown)}")
+            if spec.get("type", "input") not in ARGUMENT_TYPES:
+                errors.append(f"argument {name!r} type 非法: {spec.get('type')!r}")
+            if spec.get("type") == "select" and not spec.get("options"):
+                errors.append(f"argument {name!r} 是 select 但没有 options")
 
     if not isinstance(providers, dict):
         errors.append("script-providers 不是映射")
@@ -169,6 +191,12 @@ def check(path: str) -> list[str]:
             errors.append(f"http.script[{index}] engine 非法: {script['engine']!r}")
         if "argument" in script and not isinstance(script["argument"], str):
             errors.append(f"http.script[{index}] argument 必须是字符串")
+        if isinstance(script.get("argument"), str):
+            for name in re.findall(r"\$\{args\.([A-Za-z0-9_-]+)\|json\}", script["argument"]):
+                if name not in arguments:
+                    errors.append(
+                        f"http.script[{index}] argument 引用了未声明的参数 {name!r}"
+                    )
         if "match" not in script:
             errors.append(f"http.script[{index}] 缺少 match")
 

@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/QQKSong_remove_ads.lpx
+# 上游 sha256: dffb77f5722d6bf7
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "全民K歌去广告"
 desc: |-
   移除开屏广告、歌房页面弹窗广告、消息页广告和我的页面广告。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/QQKSong.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-dffb77f5"
 rules:
   - "DOMAIN,adsmind.gdtimg.com,REJECT"
   - "DOMAIN,adsmind.ugdtimg.com,REJECT"

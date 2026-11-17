@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import re
@@ -65,11 +66,25 @@ def inline_jq_files(source_text: str, source_url: str) -> str:
     return pattern.sub(replace, source_text)
 
 
+def _source_digest(source_text: str) -> str:
+    return hashlib.sha256(source_text.encode("utf-8")).hexdigest()
+
+
+def provenance_header(item: dict[str, Any], source_text: str) -> str:
+    """文件头留来源与内容指纹：上游一改，Stash 里 version 和这里都能对上。"""
+    return (
+        f"# 上游: {item['source']}\n"
+        f"# 上游 sha256: {_source_digest(source_text)[:16]}\n"
+        "# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖\n"
+    )
+
+
 def convert_source(item: dict[str, Any], source_text: str) -> str:
     document = parse_loon(
         inline_jq_files(source_text, item["source"]),
         argument_values=item.get("arguments"),
     )
+    document.arguments_schema = dict(item.get("arguments_schema") or {})
     if document.warnings:
         raise ValueError(f"{item['source']} conversion warnings: {document.warnings}")
     if document.metadata.get("name") != item["name"]:
@@ -79,6 +94,16 @@ def convert_source(item: dict[str, Any], source_text: str) -> str:
 
     if item.get("category"):
         document.metadata["category"] = item["category"]
+
+    # 装到手机上只能看到覆写本身，排序/依赖这类要求必须写进 desc 才有用。
+    if item.get("notes"):
+        desc = document.metadata.get("desc", "").rstrip()
+        notes = "\n\n".join(f"⚠️ {note}" for note in item["notes"])
+        document.metadata["desc"] = f"{desc}\n\n{notes}" if desc else notes
+
+    # 上游多数 Loon 插件没有 #!version；用内容指纹兜底，上游一改就能在客户端看出来。
+    if not document.metadata.get("version"):
+        document.metadata["version"] = f"lp-{_source_digest(source_text)[:8]}"
 
     # 某些 Loon 插件用 response.header.add 补 grpc-status，而 Stash 的 mock 已能直接声明
     # 响应头；两者重复时保留 mock、丢掉 header 改写，避免引入未验证的 rewrite 段。
@@ -165,7 +190,11 @@ def sync_sources(root: Path = ROOT, dry_run: bool = False) -> list[str]:
         generated.append(
             (
                 output_path,
-                inherit_payloads(output_path, convert_source(item, source_text)),
+                inherit_payloads(
+                    output_path,
+                    provenance_header(item, source_text)
+                    + convert_source(item, source_text),
+                ),
             )
         )
 

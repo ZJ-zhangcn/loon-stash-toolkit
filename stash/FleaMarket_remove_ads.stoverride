@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/FleaMarket_remove_ads.lpx
+# 上游 sha256: b8e2c9b5df750c06
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "闲鱼去广告"
 desc: |-
   移除开屏广告、商品信息流广告、关注推荐、搜索栏填充词、首页签到入口及悬浮广告，精简我的页面。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/FleaMarket.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-b8e2c9b5"
 http:
   mitm:
     - "acs.m.goofish.com"

@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/Cainiao_remove_ads.lpx
+# 上游 sha256: 43df4ff17af92aae
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "菜鸟去广告"
 desc: |-
   过滤菜鸟广告
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Cainiao.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-43df4ff1"
 http:
   mitm:
     - "netflow-mtop.cainiao.com"

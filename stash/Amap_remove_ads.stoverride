@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/Amap_remove_ads.lpx
+# 上游 sha256: 17aea055bd7ad50b
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "高德地图去广告"
 desc: |-
   移除开屏广告、首页推荐、搜索推荐、打车广告、地点推荐及广告，精简我的页面。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Amap.png"
 category: "去广告"
 date: "2026-10-20 12:06:08"
+version: "lp-17aea055"
 http:
   mitm:
     - "m5.amap.com"

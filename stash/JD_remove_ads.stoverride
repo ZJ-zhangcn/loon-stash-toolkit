@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/JD_remove_ads.lpx
+# 上游 sha256: 282d322d5939dc2c
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "京东去广告"
 desc: |-
   移除京东开屏广告，精简我的页面产品推广。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/JD.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-282d322d"
 rules:
   - "URL-REGEX,^http:\\/\\/\\w{32}\\.jddebug\\.com\\/diagnose\\?,REJECT"
 http:

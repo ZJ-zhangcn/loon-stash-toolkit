@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/YouKu_Video_remove_ads.lpx
+# 上游 sha256: 5795091d99196676
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "优酷视频去广告"
 desc: |-
   移除开屏广告、视频广告、信息流广告。其余广告由于请求已加密，故无法移除。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/YouKu_Video.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-5795091d"
 rules:
   - "DOMAIN,push.m.youku.com,DIRECT"
   - "DOMAIN,un-acs.youku.com,DIRECT"

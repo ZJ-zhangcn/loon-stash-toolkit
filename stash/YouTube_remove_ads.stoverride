@@ -1,11 +1,50 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/YouTube_remove_ads.lpx
+# 上游 sha256: 0e5da80d8d79d58d
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "YouTube去广告"
 desc: |-
   移除YouTube视频、瀑布流、搜索和Shorts中的广告，移除底栏的Shorts按钮和上传按钮，增加画中画及字幕翻译功能。移除YouTube Music底栏的上传、选段和升级按钮，增加歌词翻译，支持二者的后台播放。此插件需要启用MitM over HTTP/2和QUIC回退保护。支持Premium订阅用户使用，不支持tvOS设备。
+  
+  ⚠️ 需 MitM 并信任证书；改参数或更新覆写后，彻底退出 YouTube 再打开。
 author: "Maasea[https://github.com/Maasea], VirgilClyne[https://github.com/VirgilClyne], Choler[https://github.com/Choler], DivineEngine[https://github.com/DivineEngine], app2smile[https://github.com/app2smile]"
 homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/YouTube.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-0e5da80d"
+arguments-version: 1
+arguments:
+  blockUpload:
+    type: switch
+    title: "隐藏上传按钮"
+    default: true
+  blockShorts:
+    type: switch
+    title: "隐藏短片"
+    default: true
+  blockImmersive:
+    type: switch
+    title: "隐藏沉浸式推荐"
+    default: true
+  captionLang:
+    type: select
+    title: "字幕语言"
+    default: "zh-Hans"
+    options:
+      - value: "zh-Hans"
+        label: "简体中文"
+      - value: "zh-Hant"
+        label: "繁體中文"
+      - value: "en"
+        label: "英语"
+      - value: "ja"
+        label: "日语"
+      - value: "ko"
+        label: "韩语"
+  debug:
+    type: switch
+    title: "调试日志"
+    default: false
 http:
   mitm:
     - "youtubei.googleapis.com"
@@ -15,13 +54,13 @@ http:
       type: "response"
       require-body: true
       binary-mode: true
-      argument: "{\"blockUpload\":true,\"blockShorts\":true,\"blockImmersive\":true,\"captionLang\":\"zh-Hans\",\"debug\":false}"
+      argument: "{\"blockUpload\":${args.blockUpload|json},\"blockShorts\":${args.blockShorts|json},\"blockImmersive\":${args.blockImmersive|json},\"captionLang\":${args.captionLang|json},\"debug\":${args.debug|json}}"
     - match: "^https:\\/\\/youtubei\\.googleapis\\.com\\/youtubei\\/v1\\/log_event"
       name: "loon_youtube_remove_ads_02"
       type: "request"
       require-body: true
       binary-mode: true
-      argument: "{\"blockUpload\":true,\"blockShorts\":true,\"blockImmersive\":true,\"captionLang\":\"zh-Hans\",\"debug\":false}"
+      argument: "{\"blockUpload\":${args.blockUpload|json},\"blockShorts\":${args.blockShorts|json},\"blockImmersive\":${args.blockImmersive|json},\"captionLang\":${args.captionLang|json},\"debug\":${args.debug|json}}"
 script-providers:
   "loon_youtube_remove_ads_01":
     url: "https://git.repcz.link/kelee.one/Resource/JavaScript/YouTube/YouTube_remove_ads/YouTube_remove_ads_response.js"

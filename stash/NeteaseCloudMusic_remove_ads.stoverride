@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/NeteaseCloudMusic_remove_ads.lpx
+# 上游 sha256: a3117ca5a0993a98
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "网易云音乐去广告"
 desc: |-
   过滤网易云音乐广告，并允许自定义界面。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/NeteaseCloudMusic.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-a3117ca5"
 rules:
   - "DOMAIN,iadmat.nosdn.127.net,REJECT"
   - "DOMAIN,iadmatapk.nosdn.127.net,REJECT"

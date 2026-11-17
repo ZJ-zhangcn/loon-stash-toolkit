@@ -1,3 +1,6 @@
+# 上游: https://kelee.one/Tool/Loon/Lpx/RedPaper_remove_ads.lpx
+# 上游 sha256: b782ea4f811702a8
+# 由 tools/sync_sources.py 自动生成，手改会在下次同步被覆盖
 name: "小红书去广告"
 desc: |-
   过滤信息流推广，移除图片及视频水印，如有异常，请先清除缓存再尝试。
@@ -6,6 +9,7 @@ homepage: "https://hub.kelee.one"
 icon: "https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/RedPaper.png"
 category: "去广告"
 date: "2026-10-02 13:57:49"
+version: "lp-b782ea4f"
 rules:
   - "AND,((PROTOCOL,QUIC),(DOMAIN-SUFFIX,xiaohongshu.com)),REJECT"
 http:

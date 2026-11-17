@@ -42,6 +42,10 @@ paths.each do |path|
   merge_values(result, document.reject { |key, _| metadata_keys.include?(key) })
 end
 
+# 合集没有上游版本号可抄：用合并后的内容指纹当版本，内容一变客户端就能看出来。
+require "digest"
+result = { "version" => "agg-" + Digest::SHA256.hexdigest(JSON.generate(result))[0, 8] }.merge(result)
+
 priority_paths = paths.first(2)
 priority_rules = priority_paths.flat_map { |path| YAML.safe_load(File.read(path)).fetch("rules", []) }
 raise "priority rules are not first" unless result.fetch("rules", []).first(priority_rules.length) == priority_rules
@@ -62,7 +66,8 @@ result["date"] = if existing_cmp &&
                  else
                    Time.now.strftime("%Y-%m-%d %H:%M:%S")
                  end
-output = YAML.dump(result, line_width: -1).sub(/\A---\s*\n/, "")
+output = "# 由 tools/generate_aggregate.rb 合并 stash/*.stoverride 生成，勿手改\n" +
+         YAML.dump(result, line_width: -1).sub(/\A---\s*\n/, "")
 # payload 以 |- 块追加回各 provider 末尾；payload 带内容时 YAML.dump 一定已把该 provider 渲染为多行
 lines = output.lines
 payloads.each do |name, body|

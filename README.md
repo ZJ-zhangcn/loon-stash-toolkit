@@ -12,7 +12,10 @@ https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/stash/<文�
 
 - 32 个转换来源（31 个 Kelee 插件 + 1 个 FMZ 美团插件）及输出映射见 `sources/loon-plugins.json`。
 - 合集版（32 个来源覆写 + Bilibili 衍生覆写）：[一键添加到 Stash](https://link.stash.ws/install-override/raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/stash/Kelee_All.stoverride)（[Raw 链接](https://raw.githubusercontent.com/ZJ-zhangcn/loon-stash-toolkit/main/stash/Kelee_All.stoverride)）。合集优先排列 `BlockAdvertisers`、`Block_HTTPDNS`，其余单项覆写仍保留，可独立启停。
-- `Bilibili_remove_ads.stoverride` 基于 [kokoryh/Sparkle 的 Loon 插件](https://github.com/kokoryh/Sparkle/blob/master/release/loon/plugin/bilibili.lpx)，按需固定参数：动态最常访问设为 `show`、过滤置顶评论广告、开启空降助手、关闭日志，`bsbsb.top` 走 `DIRECT`。我的页面移除会员购，底栏过滤发布（加号）入口。评论区 protobuf 请求脚本已启用；当前上游版本没有独立的请求优化开关。
+- `Bilibili_remove_ads.stoverride` 基于 [kokoryh/Sparkle 的 Loon 插件](https://github.com/kokoryh/Sparkle/blob/master/release/loon/plugin/bilibili.lpx)，手工维护、不参与每日同步。动态最常访问、过滤置顶评论广告、空降助手、日志级别已改成 Stash 原生参数，可在客户端直接改；`bsbsb.top` 走 `DIRECT`。我的页面移除会员购，底栏过滤发布（加号）入口。评论区 protobuf 请求脚本已启用；当前上游版本没有独立的请求优化开关。
+- 生成的覆写头部带上游 URL 与 `sha256`，并在上游没有 `#!version` 时用 `lp-<hash8>` 兜底，客户端里能看出上游有没有变。
+- 排序、依赖、MitM 这类装了才知道的要求写在 `desc` 里（来源见 `sources/loon-plugins.json` 的 `notes`），不用回来看 README。
+- `YouTube_remove_ads`、`Bilibili_*` 使用 Stash 3.7 的 `arguments`，参数改动不需要改文件；低版本 Stash 会报 `the override is invalid`。
 
 ## 双向转换
 
